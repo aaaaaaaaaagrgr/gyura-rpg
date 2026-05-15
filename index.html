@@ -59,7 +59,7 @@
   #rotate-prompt strong { color: var(--accent); }
   #rotate-prompt .icon { font-size: 64px; animation: rotateIcon 2s ease-in-out infinite; display: inline-block; }
   @keyframes rotateIcon { 0%,100% { transform: rotate(0); } 50% { transform: rotate(90deg); } }
-  @media (orientation: portrait) and (max-width: 900px) {
+  @media (max-aspect-ratio: 1/1) and (pointer: coarse) {
     #rotate-prompt { display: flex; flex-direction: column; gap: 16px; }
     #game { display: none; }
   }
