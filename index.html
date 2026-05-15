@@ -1147,6 +1147,16 @@ function toast(msg, isErr){
 }
 
 //================= DB =================
+// archetypeが設定されてればステータスをコード側の値で上書き（型の数値変更が即反映される）
+function applyArchetypeStats(c){
+  if (c.archetype && ARCH_MAP[c.archetype]) {
+    const a = ARCH_MAP[c.archetype];
+    c.hp = a.hp;
+    c.atk = a.atk;
+    c.mp_max = a.mp;
+  }
+  return c;
+}
 async function loadCharacters(){
   const { data, error } = await sb.from('characters').select('*').order('created_at', { ascending: false });
   if (error) {
@@ -1154,7 +1164,7 @@ async function loadCharacters(){
     toast('読み込みに失敗（プリセットだけ表示）', true);
     G.characters = [...DEFAULTS];
   } else {
-    G.characters = [...(data||[]), ...DEFAULTS];
+    G.characters = [...(data||[]), ...DEFAULTS].map(applyArchetypeStats);
   }
   G.loaded = true;
 }
