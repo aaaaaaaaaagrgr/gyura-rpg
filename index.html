@@ -1480,7 +1480,32 @@ function buildWizardUI() {
   const updResourceHint = (i) => {
     const resource = $(`[data-tech-field="resource${i}"]`).value;
     const hint = $(`[data-tech-hint="${i}"]`);
-    if (hint) hint.textContent = resource === 'mp' ? 'MP 1〜10' : 'TP 10〜100';
+    const costInput = $(`[data-tech-field="cost${i}"]`);
+    if (resource === 'mp') {
+      if (hint) hint.textContent = 'MP 1〜10';
+      costInput.min = 1; costInput.max = 10;
+      const v = +costInput.value;
+      if (v > 10) costInput.value = 10;
+      else if (v < 1) costInput.value = 1;
+    } else {
+      if (hint) hint.textContent = 'TP 10〜100';
+      costInput.min = 10; costInput.max = 100;
+      const v = +costInput.value;
+      if (v > 100) costInput.value = 100;
+      else if (v < 10) costInput.value = 10;
+    }
+  };
+  const clampCost = (i) => {
+    const resource = $(`[data-tech-field="resource${i}"]`).value;
+    const costInput = $(`[data-tech-field="cost${i}"]`);
+    const v = +costInput.value;
+    if (resource === 'mp') {
+      if (v > 10) costInput.value = 10;
+      else if (v < 1) costInput.value = 1;
+    } else {
+      if (v > 100) costInput.value = 100;
+      else if (v < 10) costInput.value = 10;
+    }
   };
   [1,2,3].forEach(i => {
     ['name','resource','type','cost'].forEach(f => {
@@ -1489,6 +1514,8 @@ function buildWizardUI() {
       el.addEventListener('change', () => updTechPv(i));
     });
     $(`[data-tech-field="resource${i}"]`).addEventListener('change', () => updResourceHint(i));
+    // フォーカス外したらコスト自動補正
+    $(`[data-tech-field="cost${i}"]`).addEventListener('blur', () => { clampCost(i); updTechPv(i); });
   });
 }
 
@@ -1559,8 +1586,20 @@ function validatePage(n){
     if (!$('#fName').value.trim()) { toast('名前は必須', true); return false; }
     return true;
   }
-  if (n === 2) {
-    // 型・特性は常にデフォルト選択あり。技は任意。バリデーション不要
+  if (n === 4) {
+    // 技コストの範囲チェック
+    for (let i = 1; i <= 3; i++) {
+      const name = $(`[data-tech-field="name${i}"]`).value.trim();
+      if (!name) continue;
+      const resource = $(`[data-tech-field="resource${i}"]`).value;
+      const cost = +$(`[data-tech-field="cost${i}"]`).value;
+      if (resource === 'mp' && (cost < 1 || cost > 10)) {
+        toast(`技${i}: MPコストは1〜10`, true); return false;
+      }
+      if (resource === 'tp' && (cost < 10 || cost > 100)) {
+        toast(`技${i}: TPコストは10〜100`, true); return false;
+      }
+    }
     return true;
   }
   return true;
@@ -1632,7 +1671,7 @@ function renderPreview(){
   $$('[data-edit-page]').forEach(btn => btn.addEventListener('click', () => gotoWizardPage(+btn.dataset.editPage)));
 }
 async function doSubmit(){
-  if (!validatePage(1) || !validatePage(2)) return;
+  if (!validatePage(1) || !validatePage(2) || !validatePage(4)) return;
   const archId = document.querySelector('input[name="archetype"]:checked').value;
   const arch = ARCH_MAP[archId];
   const traitId = document.querySelector('input[name="trait"]:checked')?.value || null;
