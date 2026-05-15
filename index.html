@@ -1053,7 +1053,7 @@ const TRAITS = [
   { id:'kaishin',   emoji:'💥', name:'会心',     desc:'クリ率+20%・倍率+0.3' },
   { id:'rengeki',   emoji:'🗡', name:'連撃',     desc:'こうげき30%で2回ヒット' },
   { id:'kyuuketsu', emoji:'🩸', name:'吸血',     desc:'こうげきダメ25%吸血' },
-  { id:'saisei',    emoji:'🌿', name:'再生',     desc:'自ターン末にHP10%回復' },
+  { id:'saisei',    emoji:'🌿', name:'再生',     desc:'自ターン末にHP5%回復' },
   { id:'gyakkyou',  emoji:'🔥', name:'逆境',     desc:'HP30%以下で攻撃+50%' },
   { id:'sensei',    emoji:'⚡', name:'先制',     desc:'戦闘開始時 TP+30' },
 ];
@@ -2147,7 +2147,7 @@ function doPlayerAttack(){
 function endOfPlayerTurn(){
   const meT = traits(G.myChar);
   if (meT.saisei && G.pHP < G.pHPMax && G.pHP > 0) {
-    const regen = Math.max(1, Math.floor(G.pHPMax * 0.10));
+    const regen = Math.max(1, Math.floor(G.pHPMax * 0.05));
     G.pHP = Math.min(G.pHPMax, G.pHP + regen);
     popDmg('+'+regen, 'heal', 'ally');
   }
@@ -2321,7 +2321,7 @@ async function enemyTurn(){
     }
   }
   if (oppT.saisei && G.eHP < G.eHPMax && G.eHP > 0) {
-    const regen = Math.max(1, Math.floor(G.eHPMax * 0.10));
+    const regen = Math.max(1, Math.floor(G.eHPMax * 0.05));
     G.eHP = Math.min(G.eHPMax, G.eHP + regen);
     popDmg('+'+regen, 'heal', 'enemy');
   }
