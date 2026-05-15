@@ -1769,7 +1769,8 @@ function renderPreview(){
   const traitId = document.querySelector('input[name="trait"]:checked')?.value;
   const trait = traitId ? TRAIT_MAP[traitId] : null;
   const techs = getFormTechs();
-  const imageSrc = pickedFile ? URL.createObjectURL(pickedFile) : '';
+  // 編集モード時、新規ファイル未選択なら既存URLを使う
+  const imageSrc = pickedFile ? URL.createObjectURL(pickedFile) : (G.editingImageUrl || '');
   const hpPct = Math.min(100, arch.hp / STAT_MAX.hp * 100);
   const atkPct = Math.min(100, arch.atk / STAT_MAX.atk * 100);
   const mpPct = Math.min(100, arch.mp / STAT_MAX.mp * 100);
