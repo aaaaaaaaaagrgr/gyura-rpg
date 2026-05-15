@@ -1481,31 +1481,28 @@ function buildWizardUI() {
     const resource = $(`[data-tech-field="resource${i}"]`).value;
     const hint = $(`[data-tech-hint="${i}"]`);
     const costInput = $(`[data-tech-field="cost${i}"]`);
+    const v = +costInput.value;
     if (resource === 'mp') {
       if (hint) hint.textContent = 'MP 1〜10';
       costInput.min = 1; costInput.max = 10;
-      const v = +costInput.value;
-      if (v > 10) costInput.value = 10;
-      else if (v < 1) costInput.value = 1;
+      if (v > 10) { costInput.value = 10; toast(`技${i}：MP技は1〜10なのでコストを10に調整`, true); }
+      else if (v < 1) { costInput.value = 1; toast(`技${i}：MP技は1〜10なのでコストを1に調整`, true); }
     } else {
       if (hint) hint.textContent = 'TP 10〜100';
       costInput.min = 10; costInput.max = 100;
-      const v = +costInput.value;
-      if (v > 100) costInput.value = 100;
-      else if (v < 10) costInput.value = 10;
+      if (v > 100) { costInput.value = 100; toast(`技${i}：TP技は10〜100なのでコストを100に調整`, true); }
+      else if (v < 10) { costInput.value = 10; toast(`技${i}：TP技は10〜100なのでコストを10に調整`, true); }
     }
   };
   const clampCost = (i) => {
     const resource = $(`[data-tech-field="resource${i}"]`).value;
     const costInput = $(`[data-tech-field="cost${i}"]`);
     const v = +costInput.value;
-    if (resource === 'mp') {
-      if (v > 10) costInput.value = 10;
-      else if (v < 1) costInput.value = 1;
-    } else {
-      if (v > 100) costInput.value = 100;
-      else if (v < 10) costInput.value = 10;
-    }
+    const min = resource === 'mp' ? 1 : 10;
+    const max = resource === 'mp' ? 10 : 100;
+    const lbl = resource === 'mp' ? 'MP' : 'TP';
+    if (v > max) { costInput.value = max; toast(`技${i}：${lbl}コストの上限は${max}（自動で${max}に調整）`, true); }
+    else if (v < min) { costInput.value = min; toast(`技${i}：${lbl}コストの下限は${min}（自動で${min}に調整）`, true); }
   };
   [1,2,3].forEach(i => {
     ['name','resource','type','cost'].forEach(f => {
