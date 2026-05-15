@@ -436,6 +436,16 @@
     transition: opacity .2s;
   }
   .tech-popup.show { opacity: 1; pointer-events: auto; }
+  .char-preview-mini {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; background: var(--panel2);
+    border: 1px solid #3a4080; border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .char-preview-mini img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: #0a0a14; }
+  .char-preview-mini .info { flex: 1; min-width: 0; }
+  .char-preview-mini .nm { font-weight: bold; font-size: 16px; color: var(--accent); }
+  .char-preview-mini .sub { color: var(--dim); font-size: 12px; margin-top: 2px; }
   .tech-popup .backdrop {
     position: absolute; inset: 0;
     background: rgba(0,0,0,.7);
@@ -997,6 +1007,19 @@
       </div>
     </div>
 
+    <!-- Char actions popup (ギャラリーでクリック時) -->
+    <div class="tech-popup" id="charActionsPopup">
+      <div class="backdrop" id="caBackdrop"></div>
+      <div class="content" style="max-width: 380px;">
+        <div class="title" id="caTitle">キャラ操作</div>
+        <div class="char-preview-mini" id="caPreview"></div>
+        <button class="btn primary" id="caBattle">⚔ このキャラを使う</button>
+        <button class="btn ally" id="caEdit">📝 編集する</button>
+        <button class="btn danger" id="caDelete">🗑️ 削除する</button>
+        <button class="btn" id="caCancel">閉じる</button>
+      </div>
+    </div>
+
     <div class="toast" id="toast"></div>
   </main>
 </div>
@@ -1356,8 +1379,118 @@ function onPickCharacter(c){
   if (G.pickerStage === 'ally') { G.myChar = c; goPicker('enemy'); }
   else if (G.pickerStage === 'enemy') { G.oppChar = c; startBattle(); }
   else {
-    if (confirm(`「${c.name}」を自分のキャラとして使う？`)) { G.myChar = c; goPicker('enemy'); }
+    // 鑑賞モード（みんなの画像を見る）→ アクションポップアップ
+    showCharActions(c);
   }
+}
+
+//================= キャラアクション（戦う/編集/削除）=================
+function showCharActions(c){
+  G.actionChar = c;
+  const archName = c.archetype && ARCH_MAP[c.archetype] ? ARCH_MAP[c.archetype].name : '?';
+  const traitName = c.trait && TRAIT_MAP[c.trait] ? TRAIT_MAP[c.trait].name : 'なし';
+  $('#caTitle').textContent = c.name;
+  $('#caPreview').innerHTML = `
+    ${c.image_url ? `<img src="${esc(c.image_url)}" alt="">` : `<div style="width:64px;height:64px;background:var(--panel);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;">👤</div>`}
+    <div class="info">
+      <div class="nm">${esc(c.name)}</div>
+      <div class="sub">${esc(archName)} / 特性:${esc(traitName)} / HP${c.hp} 攻${c.atk} MP${c.mp_max||5}</div>
+      ${c.submitter ? `<div class="sub">投稿者: ${esc(c.submitter)}</div>` : ''}
+    </div>
+  `;
+  $('#charActionsPopup').classList.add('show');
+}
+function hideCharActions(){ $('#charActionsPopup').classList.remove('show'); }
+
+$('#caBackdrop').addEventListener('click', hideCharActions);
+$('#caCancel').addEventListener('click', hideCharActions);
+$('#caBattle').addEventListener('click', () => {
+  G.myChar = G.actionChar;
+  hideCharActions();
+  goPicker('enemy');
+});
+$('#caEdit').addEventListener('click', () => {
+  hideCharActions();
+  startEditCharacter(G.actionChar);
+});
+$('#caDelete').addEventListener('click', async () => {
+  const c = G.actionChar;
+  const ok = confirm(`⚠️ 「${c.name}」を削除します。\n\n他の人が作ったキャラも消えてしまうので、慎重に！\n\n本当に削除する？`);
+  if (!ok) return;
+  await deleteCharacter(c);
+  hideCharActions();
+});
+
+async function deleteCharacter(c){
+  try {
+    // 画像も削除（あれば）
+    if (c.image_url) {
+      const parts = c.image_url.split('/');
+      const fileName = parts[parts.length - 1];
+      await sb.storage.from('characters').remove([fileName]).catch(()=>{});
+    }
+    const { error } = await sb.from('characters').delete().eq('id', c.id);
+    if (error) throw error;
+    toast(`「${c.name}」を削除しました`);
+    G.loaded = false;
+    await loadCharacters();
+    renderGrid();
+  } catch (e) {
+    console.error(e);
+    toast('削除失敗: ' + (e.message || e), true);
+  }
+}
+
+function startEditCharacter(c){
+  goSubmit();
+  // 編集モードに切り替え（goSubmitの後でないとリセットされる）
+  G.editingId = c.id;
+  G.editingImageUrl = c.image_url || null;
+  // フォーム上書き
+  $('#fName').value = c.name || '';
+  $('#fSubmitter').value = c.submitter || '';
+  $('#fTaunt').value = c.taunt || '';
+  // サイズ
+  const sz = c.size_scale || 1.0;
+  if (sz <= 0.8) $('#size-s').checked = true;
+  else if (sz >= 1.2) $('#size-l').checked = true;
+  else $('#size-m').checked = true;
+  // 型
+  const archId = c.archetype && ARCH_MAP[c.archetype] ? c.archetype : 'balancer';
+  const aInp = document.querySelector(`input[name="archetype"][value="${archId}"]`);
+  if (aInp) aInp.checked = true;
+  $$('.archetype-card').forEach(card => card.classList.toggle('checked', card.querySelector('input').checked));
+  // 特性
+  const traitId = c.trait && TRAIT_MAP[c.trait] ? c.trait : TRAITS[0].id;
+  const tInp = document.querySelector(`input[name="trait"][value="${traitId}"]`);
+  if (tInp) tInp.checked = true;
+  $$('.trait-card').forEach(card => card.classList.toggle('checked', card.querySelector('input').checked));
+  // 技
+  const techs = c.techs || [];
+  for (let i = 0; i < 3; i++) {
+    const t = techs[i];
+    if (t) {
+      $(`[data-tech-field="name${i+1}"]`).value = t.name || '';
+      $(`[data-tech-field="resource${i+1}"]`).value = t.resource || 'mp';
+      $(`[data-tech-field="type${i+1}"]`).value = t.type || 'attack';
+      $(`[data-tech-field="cost${i+1}"]`).value = t.cost || 3;
+    }
+  }
+  // 既存画像プレビュー
+  if (c.image_url) {
+    $('#filePickInner').innerHTML = `<img src="${esc(c.image_url)}" class="preview"><div style="font-size:11px;color:var(--dim);margin-top:4px;">タップで変更（既存画像を使用中）</div>`;
+    $('#filePick').classList.add('has');
+  }
+  // 編集モード表示
+  $$('.wizard-header h2').forEach(h => h.textContent = `✏️ キャラを編集中`);
+  // 技プレビュー再計算（input event 発火）
+  [1,2,3].forEach(i => {
+    ['name','resource','type','cost'].forEach(f => {
+      $(`[data-tech-field="${f}${i}"]`).dispatchEvent(new Event('input'));
+    });
+  });
+  // 編集はプレビューページに直接ジャンプ（戻って編集も可）
+  gotoWizardPage(5);
 }
 
 //================= 投稿（3ページウィザード）=================
@@ -1567,6 +1700,9 @@ function goSubmit(){
   $('#size-m').checked = true;
   $('#fBgRemove').checked = true;
   pickedFile = null;
+  G.editingId = null;
+  G.editingImageUrl = null;
+  $$('.wizard-header h2').forEach(h => h.textContent = '📷 キャラを投稿');
   resetWizardForm();
   gotoWizardPage(1);
 }
@@ -1683,6 +1819,7 @@ async function doSubmit(){
   const archId = document.querySelector('input[name="archetype"]:checked').value;
   const arch = ARCH_MAP[archId];
   const traitId = document.querySelector('input[name="trait"]:checked')?.value || null;
+  const isEdit = !!G.editingId;
   const data = {
     role: 'ally',
     archetype: archId,
@@ -1698,16 +1835,29 @@ async function doSubmit(){
     techs: getFormTechs(),
   };
   $('#btnWSubmit').disabled = true;
-  $('#btnWSubmit').innerHTML = '<span class="spinner"></span> 投稿中…';
+  $('#btnWSubmit').innerHTML = `<span class="spinner"></span> ${isEdit?'更新中':'投稿中'}…`;
   try {
-    if (pickedFile) data.image_url = await uploadImage(pickedFile);
-    await submitCharacter(data);
-    toast('投稿しました！');
+    if (pickedFile) {
+      data.image_url = await uploadImage(pickedFile);
+    } else if (isEdit && G.editingImageUrl) {
+      // 編集時に画像未変更なら既存URL保持
+      data.image_url = G.editingImageUrl;
+    }
+    if (isEdit) {
+      const { error } = await sb.from('characters').update(data).eq('id', G.editingId);
+      if (error) throw error;
+      toast('更新しました！');
+    } else {
+      await submitCharacter(data);
+      toast('投稿しました！');
+    }
+    G.editingId = null;
+    G.editingImageUrl = null;
     G.loaded = false;
     setTimeout(() => goTitle(), 700);
   } catch (e) {
     console.error(e);
-    toast('投稿失敗: ' + (e.message || e), true);
+    toast((isEdit?'更新':'投稿')+'失敗: ' + (e.message || e), true);
   } finally {
     $('#btnWSubmit').disabled = false;
     $('#btnWSubmit').innerHTML = '📤 投稿する';
