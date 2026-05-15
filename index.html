@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>ギュラ鯖RPG</title>
+<style>
+  :root {
+    --bg: #0d0f1a;
+    --panel: #161a2e;
+    --panel2: #1f2444;
+    --accent: #ffd24a;
+    --accent2: #ff5d8f;
+    --text: #f5f6ff;
+    --dim: #8a90b8;
+    --hp: #4be07a;
+    --hp-low: #ff5b5b;
+    --mp: #5bb6ff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+    overflow: hidden;
+    height: 100%;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at top, #1a1f3a 0%, #07080f 100%);
+  }
+  #game {
+    width: min(720px, 100vw);
+    height: min(960px, 100vh);
+    max-height: 100vh;
+    background: var(--panel);
+    border: 2px solid #2a3060;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6), inset 0 0 0 1px #3a4080;
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+  header {
+    padding: 10px 16px;
+    background: linear-gradient(180deg, #232a55, #1a1f44);
+    border-bottom: 2px solid #3a4080;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  header .title { font-weight: bold; color: var(--accent); letter-spacing: 2px; }
+  header .stats { color: var(--dim); font-size: 12px; }
+  header .stats b { color: var(--text); }
+  main {
+    flex: 1; position: relative; overflow: hidden;
+  }
+  .scene {
+    position: absolute; inset: 0;
+    padding: 16px;
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .scene.active { opacity: 1; pointer-events: auto; }
+
+  /* ========== Title ========== */
+  .title-wrap {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    gap: 18px;
+  }
+  .game-title {
+    font-size: clamp(36px, 8vw, 64px);
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow:
+      0 0 12px rgba(255,210,74,.5),
+      4px 4px 0 #b8860b,
+      8px 8px 0 #5a4400;
+    letter-spacing: 4px;
+    line-height: 1.1;
+  }
+  .game-sub { color: var(--dim); font-size: 14px; letter-spacing: 6px; }
+  .name-input {
+    margin-top: 10px;
+    background: #0c0e1c;
+    border: 2px solid #3a4080;
+    color: var(--text);
+    font: inherit; font-size: 18px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-align: center;
+    width: 80%; max-width: 320px;
+  }
+  .btn {
+    background: linear-gradient(180deg, #3a4080, #232a55);
+    color: var(--text);
+    border: 2px solid #4a52a0;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font: inherit; font-size: 16px; font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #1a1f44, 0 6px 10px rgba(0,0,0,.4);
+    transition: transform .08s, box-shadow .08s;
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #1a1f44; }
+  .btn.primary {
+    background: linear-gradient(180deg, #ffd24a, #d49a1e);
+    color: #2a1a00; border-color: #ffe88a;
+    box-shadow: 0 4px 0 #8a6a00, 0 6px 10px rgba(0,0,0,.4);
+  }
+  .btn.danger {
+    background: linear-gradient(180deg, #ff5d8f, #b32553);
+    border-color: #ff8aaf;
+    box-shadow: 0 4px 0 #5a0a25, 0 6px 10px rgba(0,0,0,.4);
+  }
+
+  /* ========== Map ========== */
+  .map-wrap {
+    flex: 1; display: flex; flex-direction: column; gap: 12px;
+  }
+  .map-title {
+    color: var(--accent); font-size: 20px; font-weight: bold;
+    text-align: center; letter-spacing: 2px;
+  }
+  .map-desc { color: var(--dim); font-size: 13px; text-align: center; }
+  .stage-list {
+    flex: 1; display: flex; flex-direction: column; gap: 10px;
+    margin-top: 8px; overflow-y: auto;
+  }
+  .stage {
+    background: var(--panel2);
+    border: 2px solid #2a3060;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    transition: transform .08s, border-color .15s;
+  }
+  .stage:not(.locked):not(.cleared):hover {
+    border-color: var(--accent); transform: translateX(4px);
+  }
+  .stage.locked { opacity: .4; cursor: not-allowed; }
+  .stage.cleared { opacity: .65; }
+  .stage.cleared .icon { filter: grayscale(.7); }
+  .stage .icon { font-size: 36px; flex-shrink: 0; width: 50px; text-align: center; }
+  .stage .info { flex: 1; min-width: 0; }
+  .stage .info .nm { font-weight: bold; font-size: 16px; }
+  .stage .info .dsc { color: var(--dim); font-size: 12px; margin-top: 2px; }
+  .stage .badge {
+    background: var(--accent); color: #2a1a00;
+    font-size: 11px; font-weight: bold;
+    padding: 3px 8px; border-radius: 6px;
+  }
+  .stage.cleared .badge { background: #4be07a; color: #0a3a20; }
+  .stage.boss { border-color: var(--accent2); }
+  .stage.boss .badge { background: var(--accent2); color: #2a0010; }
+
+  /* ========== Battle ========== */
+  .battle-wrap { flex: 1; display: flex; flex-direction: column; }
+  .enemy-stage {
+    flex: 1;
+    background:
+      radial-gradient(ellipse at 50% 80%, #4a2055 0%, transparent 60%),
+      linear-gradient(180deg, #1a1238 0%, #0a0820 100%);
+    border: 2px solid #3a2060;
+    border-radius: 12px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    min-height: 240px;
+  }
+  .enemy-stage::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.04) 0 1px, transparent 1px),
+      radial-gradient(circle at 70% 60%, rgba(255,255,255,.05) 0 1px, transparent 1px),
+      radial-gradient(circle at 40% 80%, rgba(255,255,255,.03) 0 1px, transparent 1px);
+    background-size: 200px 200px, 250px 250px, 180px 180px;
+    pointer-events: none;
+  }
+  .enemy {
+    font-size: 120px; text-align: center;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,.6));
+    animation: bob 2.5s ease-in-out infinite;
+    transition: filter .15s, transform .15s;
+    line-height: 1;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .enemy.hurt { animation: hurt .4s; }
+  @keyframes hurt {
+    0%, 100% { transform: translateX(0); filter: none; }
+    20% { transform: translateX(-12px); filter: drop-shadow(0 0 12px #ff5b5b) hue-rotate(-30deg); }
+    40% { transform: translateX(12px); filter: drop-shadow(0 0 12px #ff5b5b) hue-rotate(-30deg); }
+    60% { transform: translateX(-8px); filter: drop-shadow(0 0 12px #ff5b5b); }
+    80% { transform: translateX(6px); }
+  }
+  .enemy.dying { animation: die 1s forwards; }
+  @keyframes die {
+    0% { opacity: 1; transform: scale(1) rotate(0); }
+    100% { opacity: 0; transform: scale(.3) rotate(180deg) translateY(80px); filter: blur(8px); }
+  }
+  .enemy-name {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,.5); padding: 4px 12px; border-radius: 6px;
+    font-size: 14px; font-weight: bold;
+  }
+  .hp-bar-wrap {
+    position: absolute; bottom: 12px; left: 12px; right: 12px;
+  }
+  .hp-bar {
+    height: 14px; background: #0a0a18; border: 1px solid #3a4080;
+    border-radius: 4px; overflow: hidden; position: relative;
+  }
+  .hp-bar > .fill {
+    height: 100%; background: linear-gradient(180deg, var(--hp), #2a9050);
+    transition: width .4s;
+  }
+  .hp-bar.low > .fill { background: linear-gradient(180deg, var(--hp-low), #802020); }
+  .hp-bar > .txt {
+    position: absolute; inset: 0; text-align: center;
+    font-size: 11px; line-height: 14px; font-weight: bold;
+    text-shadow: 0 0 4px #000;
+  }
+
+  .player-area {
+    background: var(--panel2);
+    border-top: 2px solid #3a4080;
+    margin: 0 -16px; padding: 10px 16px;
+    flex-shrink: 0;
+  }
+  .player-line {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; margin-bottom: 6px;
+  }
+  .player-line .nm { font-weight: bold; min-width: 80px; }
+  .log {
+    background: #0a0c18; border: 1px solid #2a3060; border-radius: 6px;
+    padding: 8px 12px; font-size: 13px; line-height: 1.5;
+    height: 60px; overflow-y: auto;
+    margin: 8px 0;
+  }
+  .log .line { margin: 0; }
+  .log .line.dmg { color: #ff8a8a; }
+  .log .line.heal { color: #8aff9a; }
+  .log .line.crit { color: var(--accent); font-weight: bold; }
+  .log .line.sys { color: var(--dim); font-style: italic; }
+  .cmds {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .cmds .btn { padding: 12px 8px; font-size: 15px; }
+  .cmds .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* damage popups */
+  .dmg-pop {
+    position: absolute; left: 50%; top: 40%;
+    transform: translate(-50%, -50%);
+    font-size: 42px; font-weight: 900;
+    color: var(--accent); text-shadow: 2px 2px 0 #5a3a00, 0 0 12px rgba(255,210,74,.8);
+    pointer-events: none;
+    animation: pop 1s forwards;
+  }
+  .dmg-pop.crit { color: var(--accent2); text-shadow: 2px 2px 0 #5a0030, 0 0 16px rgba(255,93,143,.9); font-size: 56px; }
+  .dmg-pop.miss { color: var(--dim); font-size: 32px; }
+  .dmg-pop.heal { color: var(--hp); text-shadow: 2px 2px 0 #0a3a20; }
+  @keyframes pop {
+    0% { opacity: 0; transform: translate(-50%, -30%) scale(.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    40% { transform: translate(-50%, -55%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -90%) scale(1); }
+  }
+
+  /* ========== Ending ========== */
+  .end-wrap {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; text-align: center;
+    padding: 20px;
+  }
+  .end-title {
+    font-size: 36px; font-weight: 900; color: var(--accent);
+    text-shadow: 4px 4px 0 #b8860b;
+  }
+  .end-title.bad { color: var(--accent2); text-shadow: 4px 4px 0 #5a0030; }
+  .result-box {
+    background: var(--panel2);
+    border: 2px solid #3a4080;
+    border-radius: 12px;
+    padding: 16px 24px;
+    min-width: 280px;
+    font-size: 15px; line-height: 1.8;
+  }
+  .result-box .row { display: flex; justify-content: space-between; gap: 20px; }
+  .result-box .row b { color: var(--accent); }
+  .share-hint { color: var(--dim); font-size: 13px; max-width: 360px; }
+  .share-box {
+    background: #0a0c18; border: 1px solid #3a4080; border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; font-family: ui-monospace, monospace;
+    white-space: pre-wrap; text-align: left;
+    max-width: 90%;
+  }
+
+  footer {
+    padding: 6px 12px; text-align: center;
+    color: var(--dim); font-size: 11px;
+    border-top: 1px solid #2a3060;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <header>
+    <div class="title">🎮 ギュラ鯖RPG</div>
+    <div class="stats" id="stats"></div>
+  </header>
+  <main>
+    <!-- Title -->
+    <section class="scene active" id="scene-title">
+      <div class="title-wrap">
+        <div class="game-title">ギュラ鯖<br>RPG</div>
+        <div class="game-sub">~ 鯖を救う英雄になれ ~</div>
+        <input id="playerName" class="name-input" maxlength="10" placeholder="名前を入れて (10文字まで)">
+        <button class="btn primary" id="btnStart">▶ ぼうけんを はじめる</button>
+        <div style="color:var(--dim);font-size:11px;margin-top:8px;">音は鳴らないよ / スマホ・PC両対応</div>
+      </div>
+    </section>
+
+    <!-- Map -->
+    <section class="scene" id="scene-map">
+      <div class="map-wrap">
+        <div class="map-title">🗺️ ギュラ鯖の世界</div>
+        <div class="map-desc">いどむ ステージを えらべ！</div>
+        <div class="stage-list" id="stageList"></div>
+      </div>
+    </section>
+
+    <!-- Battle -->
+    <section class="scene" id="scene-battle">
+      <div class="battle-wrap">
+        <div class="enemy-stage" id="enemyStage">
+          <div class="enemy-name" id="enemyName">スライム</div>
+          <div class="enemy" id="enemySprite">👾</div>
+          <div class="hp-bar-wrap">
+            <div class="hp-bar" id="enemyHpBar">
+              <div class="fill" id="enemyHpFill" style="width:100%"></div>
+              <div class="txt" id="enemyHpTxt">HP 30/30</div>
+            </div>
+          </div>
+        </div>
+        <div class="player-area">
+          <div class="player-line">
+            <span class="nm" id="pName">勇者</span>
+            <div class="hp-bar" id="playerHpBar" style="flex:1">
+              <div class="fill" id="playerHpFill" style="width:100%; background:linear-gradient(180deg,#4bc4ff,#2070b0)"></div>
+              <div class="txt" id="playerHpTxt">HP 50/50</div>
+            </div>
+          </div>
+          <div class="log" id="log"></div>
+          <div class="cmds">
+            <button class="btn" data-cmd="attack">⚔️ こうげき</button>
+            <button class="btn" data-cmd="special">✨ ひっさつ (MP3)</button>
+            <button class="btn" data-cmd="guard">🛡️ ぼうぎょ</button>
+            <button class="btn danger" data-cmd="run">🏃 にげる</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ending -->
+    <section class="scene" id="scene-end">
+      <div class="end-wrap" id="endWrap"></div>
+    </section>
+  </main>
+  <footer>v0.1 / ギュラ鯖の英雄を求む</footer>
+</div>
+
+<script>
+//================= データ =================
+const STAGES = [
+  { id:1, name:'チャット欄のスライム', icon:'🟢', desc:'初心者帯のザコ。様子見にちょうどいい', enemy:{ name:'チャットスライム', sprite:'🟢', hp:24, atk:4, def:0, gold:8, exp:6 } },
+  { id:2, name:'荒らしゴブリン', icon:'👺', desc:'なんJ語で攻めてくる', enemy:{ name:'荒らしゴブリン', sprite:'👺', hp:36, atk:7, def:1, gold:14, exp:10 } },
+  { id:3, name:'BANされし亡霊', icon:'👻', desc:'過去にBANされた者たちの怨念', enemy:{ name:'BAN亡霊', sprite:'👻', hp:48, atk:9, def:2, gold:20, exp:14 } },
+  { id:4, name:'通知爆撃ドラゴン', icon:'🐉', desc:'@everyone を連打してくる', enemy:{ name:'通知ドラゴン', sprite:'🐲', hp:80, atk:13, def:3, gold:40, exp:28, boss:true } },
+  { id:5, name:'ミュート魔人', icon:'🤐', desc:'喋るとMPが減る', enemy:{ name:'ミュート魔人', sprite:'🧞', hp:70, atk:11, def:4, gold:30, exp:22, mute:true } },
+  { id:6, name:'ラグ霊将', icon:'🌀', desc:'回線を歪める存在。たまに行動失敗', enemy:{ name:'ラグ霊将', sprite:'🌀', hp:90, atk:14, def:3, gold:36, exp:26, lag:true } },
+  { id:7, name:'鯖落とし', icon:'💀', desc:'ギュラ鯖を破壊しに来た最強の敵', enemy:{ name:'鯖落とし', sprite:'😈', hp:160, atk:18, def:5, gold:120, exp:80, boss:true, final:true } },
+];
+
+const FUNNY = {
+  attack: ['「{p}」は {e} に つっこみを いれた！','「{p}」は ガチで パンチした！','「{p}」の キレッキレ レスポンス！','「{p}」は キーボードで 殴った！'],
+  miss: ['「{p}」の こうげきは スルーされた…','「{p}」の こうげきは ROM専に かわされた！','「{p}」は タイポした！'],
+  crit: ['💥 痛恨の 正論！','💥 限界突破の マジレス！','💥 場が 凍りつく ひとこと！'],
+  enemyAtk:['{e} は {p} に 煽りレスを ぶつけた！','{e} の マウントが 炸裂！','{e} は {p} に 既読スルーを かました！','{e} の 連投攻撃！'],
+  enemyMiss:['{e} の こうげきは 圏外！','{e} は 自滅した…','{e} は タイプミスした！'],
+  guard:['{p} は 通知を ミュートした！','{p} は ROMに 徹した！','{p} は 防御の構え！'],
+};
+
+//================= 状態 =================
+const G = {
+  name:'勇者',
+  hp:60, hpMax:60,
+  mp:3, mpMax:5,
+  atk:8, def:2,
+  lv:1, exp:0, gold:0,
+  cleared:new Set(),
+  totalDmg:0, turns:0, startTime:0,
+  inBattle:null, guarding:false,
+};
+
+//================= ユーティリティ =================
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+const rand = (a,b)=> a + Math.floor(Math.random()*(b-a+1));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+function show(id){
+  $$('.scene').forEach(s=>s.classList.remove('active'));
+  $('#scene-'+id).classList.add('active');
+}
+
+function updateHeader(){
+  $('#stats').innerHTML = `Lv<b>${G.lv}</b> 💰<b>${G.gold}</b> ✨<b>${G.mp}</b>/${G.mpMax}`;
+}
+
+function log(text, cls=''){
+  const p = document.createElement('p');
+  p.className = 'line ' + cls;
+  p.textContent = text;
+  $('#log').appendChild(p);
+  $('#log').scrollTop = $('#log').scrollHeight;
+}
+
+function fmt(t, ctx){ return t.replace('{p}', ctx.p).replace('{e}', ctx.e); }
+
+function popDmg(text, type=''){
+  const stage = $('#enemyStage');
+  const el = document.createElement('div');
+  el.className = 'dmg-pop ' + type;
+  el.textContent = text;
+  stage.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+}
+
+//================= タイトル =================
+$('#btnStart').addEventListener('click', ()=>{
+  const v = $('#playerName').value.trim() || '名無しの鯖民';
+  G.name = v.slice(0,10);
+  G.startTime = Date.now();
+  $('#pName').textContent = G.name;
+  goMap();
+});
+
+//================= マップ =================
+function goMap(){
+  updateHeader();
+  const list = $('#stageList');
+  list.innerHTML = '';
+  STAGES.forEach((st, idx)=>{
+    const prevCleared = idx === 0 || G.cleared.has(STAGES[idx-1].id);
+    const cleared = G.cleared.has(st.id);
+    const locked = !prevCleared && !cleared;
+    const el = document.createElement('div');
+    el.className = 'stage'
+      + (cleared ? ' cleared' : '')
+      + (locked ? ' locked' : '')
+      + (st.enemy.boss ? ' boss' : '');
+    el.innerHTML = `
+      <div class="icon">${st.icon}</div>
+      <div class="info">
+        <div class="nm">${st.name}</div>
+        <div class="dsc">${st.desc}</div>
+      </div>
+      <div class="badge">${cleared ? 'CLEAR' : (st.enemy.boss ? 'BOSS' : 'いどむ')}</div>
+    `;
+    if (!locked && !cleared) {
+      el.addEventListener('click', ()=>startBattle(st));
+    }
+    list.appendChild(el);
+  });
+  // 全クリ判定
+  if (STAGES.every(s=>G.cleared.has(s.id))) {
+    endGame(true);
+    return;
+  }
+  show('map');
+}
+
+//================= バトル =================
+function startBattle(stage){
+  G.inBattle = { stage, e:{...stage.enemy}, eMax:stage.enemy.hp };
+  G.guarding = false;
+  $('#enemyName').textContent = G.inBattle.e.name;
+  $('#enemySprite').textContent = G.inBattle.e.sprite;
+  $('#enemySprite').classList.remove('hurt','dying');
+  refreshBars();
+  $('#log').innerHTML = '';
+  log(`▼ ${G.inBattle.e.name} が あらわれた！`, 'sys');
+  enableCmds(true);
+  show('battle');
+}
+
+function refreshBars(){
+  const e = G.inBattle ? G.inBattle.e : null;
+  if (e) {
+    const max = G.inBattle.eMax;
+    const pct = Math.max(0, e.hp/max*100);
+    $('#enemyHpFill').style.width = pct+'%';
+    $('#enemyHpTxt').textContent = `HP ${Math.max(0,e.hp)}/${max}`;
+    $('#enemyHpBar').classList.toggle('low', pct < 30);
+  }
+  const ppct = G.hp/G.hpMax*100;
+  $('#playerHpFill').style.width = ppct+'%';
+  $('#playerHpTxt').textContent = `HP ${Math.max(0,G.hp)}/${G.hpMax}`;
+  $('#playerHpBar').classList.toggle('low', ppct < 30);
+  updateHeader();
+}
+
+function enableCmds(on){
+  $$('.cmds .btn').forEach(b=>{
+    b.disabled = !on;
+    if (b.dataset.cmd==='special') b.disabled = !on || G.mp < 3;
+  });
+}
+
+$$('.cmds .btn').forEach(b=>{
+  b.addEventListener('click', ()=>handleCmd(b.dataset.cmd));
+});
+
+async function handleCmd(cmd){
+  enableCmds(false);
+  G.turns++;
+  const e = G.inBattle.e;
+  const ctx = { p:G.name, e:e.name };
+
+  if (cmd === 'attack') {
+    const miss = Math.random() < 0.08;
+    if (miss) {
+      log(fmt(pick(FUNNY.miss), ctx), 'sys');
+      popDmg('MISS', 'miss');
+    } else {
+      const crit = Math.random() < 0.18;
+      let dmg = Math.max(1, G.atk - e.def + rand(-2,3));
+      if (crit) dmg = Math.floor(dmg * 1.8);
+      e.hp -= dmg; G.totalDmg += dmg;
+      $('#enemySprite').classList.remove('hurt'); void $('#enemySprite').offsetWidth;
+      $('#enemySprite').classList.add('hurt');
+      popDmg(dmg, crit ? 'crit' : '');
+      if (crit) log(pick(FUNNY.crit), 'crit');
+      log(fmt(pick(FUNNY.attack), ctx) + ` ${dmg} のダメージ！`, 'dmg');
+    }
+  }
+  else if (cmd === 'special') {
+    if (G.mp < 3) { enableCmds(true); return; }
+    G.mp -= 3;
+    const dmg = Math.max(1, Math.floor(G.atk * 2.2) - Math.floor(e.def/2) + rand(0,6));
+    e.hp -= dmg; G.totalDmg += dmg;
+    $('#enemySprite').classList.add('hurt');
+    popDmg(dmg, 'crit');
+    log(`✨ ${G.name} の ひっさつ「鯖の意地」！ ${dmg} のダメージ！`, 'crit');
+  }
+  else if (cmd === 'guard') {
+    G.guarding = true;
+    // 回復も少しする
+    const heal = Math.min(G.hpMax - G.hp, rand(3,7));
+    if (heal > 0) {
+      G.hp += heal;
+      popDmg('+'+heal, 'heal');
+    }
+    log(fmt(pick(FUNNY.guard), ctx) + (heal? ` (HPが ${heal} 回復)` : ''), 'heal');
+  }
+  else if (cmd === 'run') {
+    log('にげだした…', 'sys');
+    await sleep(700);
+    G.inBattle = null;
+    goMap();
+    return;
+  }
+
+  refreshBars();
+  await sleep(700);
+
+  // 勝利
+  if (e.hp <= 0) {
+    $('#enemySprite').classList.add('dying');
+    log(`${e.name} を たおした！`, 'crit');
+    await sleep(900);
+    rewardAndFinish();
+    return;
+  }
+
+  // 敵ターン
+  await enemyTurn();
+  if (G.hp <= 0) {
+    log(`${G.name} は ちからつきた…`, 'sys');
+    await sleep(900);
+    endGame(false);
+    return;
+  }
+  G.guarding = false;
+  enableCmds(true);
+}
+
+async function enemyTurn(){
+  const e = G.inBattle.e;
+  const ctx = { p:G.name, e:e.name };
+  // ラグ持ちは20%失敗
+  if (e.lag && Math.random() < 0.25) {
+    log(fmt(pick(FUNNY.enemyMiss), ctx), 'sys');
+    return;
+  }
+  let dmg = Math.max(1, e.atk - G.def + rand(-2,3));
+  if (G.guarding) dmg = Math.max(0, Math.floor(dmg * 0.4));
+  // ミュート魔人はMPを削る
+  if (e.mute && Math.random() < 0.4 && G.mp > 0) {
+    const loss = Math.min(G.mp, rand(1,2));
+    G.mp -= loss;
+    log(`${e.name} の ミュート波動！ MP -${loss}`, 'sys');
+    refreshBars();
+    return;
+  }
+  G.hp -= dmg;
+  popDmg(dmg);
+  log(fmt(pick(FUNNY.enemyAtk), ctx) + ` ${dmg} のダメージ！`, 'dmg');
+  refreshBars();
+}
+
+function rewardAndFinish(){
+  const s = G.inBattle.stage;
+  const e = G.inBattle.e;
+  G.cleared.add(s.id);
+  G.gold += e.gold;
+  G.exp += e.exp;
+  // レベルアップ
+  const need = G.lv * 12;
+  let leveled = false;
+  while (G.exp >= need) {
+    G.exp -= need;
+    G.lv++;
+    G.hpMax += 8; G.hp = G.hpMax;
+    G.atk += 2; G.def += 1;
+    G.mpMax += 1; G.mp = G.mpMax;
+    leveled = true;
+  }
+  if (e.final) {
+    G.inBattle = null;
+    endGame(true);
+    return;
+  }
+  let msg = `+${e.gold} G / +${e.exp} EXP`;
+  if (leveled) msg += `\nLv UP！ Lv${G.lv} になった！`;
+  setTimeout(()=>{
+    alert(msg);
+    // MP小回復
+    G.mp = Math.min(G.mpMax, G.mp + 2);
+    G.hp = Math.min(G.hpMax, G.hp + Math.floor(G.hpMax * 0.4));
+    G.inBattle = null;
+    goMap();
+  }, 200);
+}
+
+//================= エンディング =================
+function endGame(win){
+  const sec = Math.floor((Date.now() - G.startTime)/1000);
+  const mm = String(Math.floor(sec/60)).padStart(2,'0');
+  const ss = String(sec%60).padStart(2,'0');
+  const score = Math.max(0, G.gold*10 + G.lv*50 + G.totalDmg + (win?2000:0) - G.turns*2);
+  const rank = win
+    ? (score >= 3500 ? 'S' : score >= 2800 ? 'A' : score >= 2200 ? 'B' : 'C')
+    : 'F';
+  const wrap = $('#endWrap');
+  const stagesClr = G.cleared.size;
+  wrap.innerHTML = `
+    <div class="end-title ${win?'':'bad'}">${win ? '🎉 鯖を救った！' : '💀 ちからつきた…'}</div>
+    <div style="font-size:14px;color:var(--dim);">${win ? 'ギュラ鯖は今日も平和だ' : 'また挑戦してね'}</div>
+    <div class="result-box">
+      <div class="row"><span>勇者の名</span><b>${G.name}</b></div>
+      <div class="row"><span>到達Lv</span><b>${G.lv}</b></div>
+      <div class="row"><span>撃破ステージ</span><b>${stagesClr} / ${STAGES.length}</b></div>
+      <div class="row"><span>総ダメージ</span><b>${G.totalDmg}</b></div>
+      <div class="row"><span>所持金</span><b>${G.gold} G</b></div>
+      <div class="row"><span>経過ターン</span><b>${G.turns}</b></div>
+      <div class="row"><span>クリアタイム</span><b>${mm}:${ss}</b></div>
+      <div class="row"><span>スコア</span><b>${score}</b></div>
+      <div class="row" style="border-top:1px dashed #3a4080;margin-top:6px;padding-top:6px;"><span>ランク</span><b style="font-size:24px;">${rank}</b></div>
+    </div>
+    <div class="share-hint">↓ この文章をコピってDiscordに貼ろう ↓</div>
+    <textarea class="share-box" id="shareBox" rows="4" readonly>${G.name}は ギュラ鯖RPG で ランク${rank}！\nLv${G.lv} / ${stagesClr}ステージ撃破 / スコア${score} / ${mm}:${ss}\n${win?'#鯖を救った':'#力尽きた'}</textarea>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="btn" id="btnCopy">📋 結果をコピー</button>
+      <button class="btn primary" id="btnRetry">🔁 もう一度</button>
+    </div>
+  `;
+  $('#btnCopy').addEventListener('click', ()=>{
+    const ta = $('#shareBox');
+    ta.select();
+    document.execCommand('copy');
+    $('#btnCopy').textContent = '✅ コピーした！';
+    setTimeout(()=>{ $('#btnCopy').textContent = '📋 結果をコピー'; }, 1500);
+  });
+  $('#btnRetry').addEventListener('click', resetGame);
+  show('end');
+}
+
+function resetGame(){
+  G.hp = 60; G.hpMax = 60; G.mp = 3; G.mpMax = 5;
+  G.atk = 8; G.def = 2; G.lv = 1; G.exp = 0; G.gold = 0;
+  G.cleared = new Set();
+  G.totalDmg = 0; G.turns = 0; G.startTime = 0;
+  G.inBattle = null; G.guarding = false;
+  $('#playerName').value = G.name;
+  show('title');
+}
+
+updateHeader();
+</script>
+</body>
+</html>
