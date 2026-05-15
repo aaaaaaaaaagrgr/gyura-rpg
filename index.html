@@ -94,6 +94,8 @@
     overflow: hidden;
   }
   .scene.active { opacity: 1; pointer-events: auto; }
+  /* 非アクティブシーンの中身は完全にクリック対象外（誤介入防止） */
+  .scene:not(.active) * { pointer-events: none !important; }
 
   /* ========== Buttons ========== */
   .btn {
@@ -322,8 +324,154 @@
   }
   .wizard-footer .btn { flex: 1; padding: 10px; font-size: 14px; }
 
-  /* Preview (page 3) */
-  .preview-grid { display: grid; grid-template-columns: 280px 1fr; gap: 22px; align-items: start; }
+  /* ページ見出し */
+  .page-section-head { margin-bottom: 12px; }
+  .page-section-head h3 { margin: 0; color: var(--accent); font-size: 18px; }
+  .page-section-head p { margin: 4px 0 0; color: var(--dim); font-size: 12px; }
+
+  /* ステータス型カード（バー付き） */
+  .archetype-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .archetype-card {
+    background: var(--panel2);
+    border: 2px solid #3a4080;
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all .12s;
+    display: block;
+    margin: 0;
+    position: relative;
+  }
+  .archetype-card input { position: absolute; opacity: 0; pointer-events: none; }
+  .archetype-card:hover { border-color: var(--ally); transform: translateY(-2px); }
+  .archetype-card.checked {
+    border-color: var(--accent);
+    background: rgba(255,210,74,.12);
+    box-shadow: 0 0 0 1px var(--accent), 0 4px 14px rgba(255,210,74,.2);
+  }
+  .ac-head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .ac-emoji { font-size: 24px; }
+  .ac-name { font-weight: bold; font-size: 14px; color: var(--text); }
+  .ac-bars { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+  .ac-bar { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .ac-bar-lbl { width: 22px; color: var(--dim); flex-shrink: 0; font-weight: bold; }
+  .ac-bar-track { flex: 1; height: 8px; background: #0a0a18; border: 1px solid #3a4080; border-radius: 4px; overflow: hidden; }
+  .ac-bar-fill { height: 100%; transition: width .3s; }
+  .ac-bar.hp .ac-bar-fill { background: linear-gradient(180deg, var(--hp), #2a9050); }
+  .ac-bar.atk .ac-bar-fill { background: linear-gradient(180deg, var(--accent2), #802020); }
+  .ac-bar.mp .ac-bar-fill { background: linear-gradient(180deg, var(--mp), #2070b0); }
+  .ac-bar-val { width: 28px; text-align: right; color: var(--text); font-weight: bold; font-size: 12px; }
+  .ac-desc { color: var(--dim); font-size: 11px; line-height: 1.4; }
+
+  /* 特性カード（4列・大きめ・足りなければスクロール） */
+  .trait-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .trait-card {
+    background: var(--panel2);
+    border: 2px solid #3a4080;
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all .12s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    margin: 0; position: relative;
+    text-align: center;
+  }
+  .trait-card input { position: absolute; opacity: 0; pointer-events: none; }
+  .trait-card:hover { border-color: var(--ally); transform: translateY(-2px); }
+  .trait-card.checked {
+    border-color: var(--accent);
+    background: rgba(255,210,74,.12);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .tc-emoji { font-size: 32px; line-height: 1; }
+  .tc-body { width: 100%; }
+  .tc-name { font-weight: bold; font-size: 16px; color: var(--text); }
+  .tc-effect { color: var(--accent); font-size: 12px; margin-top: 3px; line-height: 1.4; }
+
+  /* Tech slots（コンパクト・プレビューはインライン） */
+  .tech-slots { display: flex; flex-direction: column; gap: 10px; }
+  .tech-slot {
+    background: rgba(0,0,0,.3);
+    border: 2px solid #3a4080;
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .ts-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .ts-head .lbl { font-weight: bold; color: var(--accent); font-size: 13px; }
+  .ts-row1 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+  .ts-row1 .text-input, .ts-row1 select { padding: 6px 9px; font-size: 12px; }
+  .ts-cost-row { display: flex; align-items: center; gap: 8px; }
+  .ts-cost-row label { font-size: 11px; color: var(--dim); white-space: nowrap; }
+  .ts-cost-row input[type="number"] { width: 60px; padding: 5px 8px; font-size: 13px; }
+  .ts-cost-row .cost-hint { font-size: 10px; color: var(--dim); white-space: nowrap; }
+  .ts-preview {
+    background: linear-gradient(90deg, rgba(255,210,74,.12), rgba(255,210,74,.04));
+    border: 1px solid rgba(255,210,74,.35);
+    border-radius: 6px;
+    padding: 5px 12px;
+    transition: all .2s;
+    flex: 1;
+    display: flex; align-items: center; gap: 12px;
+    overflow: hidden;
+  }
+  .ts-preview.empty { opacity: .35; border-style: dashed; background: rgba(0,0,0,.15); }
+  .ts-preview .tp-effect {
+    font-size: 14px; font-weight: bold; color: var(--accent); white-space: nowrap;
+  }
+  .ts-preview .tp-detail {
+    font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  @keyframes pulse-yellow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,210,74,0); }
+    50% { box-shadow: 0 0 0 4px rgba(255,210,74,.4); }
+  }
+  .ts-preview.changed { animation: pulse-yellow .5s; }
+
+  /* Tech popup (battle) */
+  .tech-popup {
+    position: absolute; inset: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .tech-popup.show { opacity: 1; pointer-events: auto; }
+  .tech-popup .backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.7);
+    backdrop-filter: blur(4px);
+  }
+  .tech-popup .content {
+    position: relative;
+    background: var(--panel);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 16px 18px;
+    max-width: 380px; width: 90%;
+    box-shadow: 0 0 32px rgba(255,210,74,.3);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .tech-popup .title { color: var(--accent); font-weight: bold; text-align: center; font-size: 15px; }
+  .tech-popup .list { display: flex; flex-direction: column; gap: 6px; }
+  .tech-card {
+    background: var(--panel2);
+    border: 1px solid #3a4080;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all .12s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tech-card:hover { border-color: var(--accent); background: rgba(255,210,74,.08); transform: translateX(2px); }
+  .tech-card.disabled { opacity: .4; cursor: not-allowed; }
+  .tech-card.disabled:hover { border-color: #3a4080; background: var(--panel2); transform: none; }
+  .tech-card .nm { font-weight: bold; flex: 1; font-size: 13px; }
+  .tech-card .cost { color: var(--mp); font-size: 11px; font-weight: bold; }
+  .tech-card .cost.tp { color: var(--accent); }
+  .tech-card .eff { color: var(--dim); font-size: 11px; }
+
+  /* Preview (page 5) */
+  .preview-grid { display: grid; grid-template-columns: 240px 1fr; gap: 18px; align-items: start; }
   .preview-img {
     background: rgba(0,0,0,.3); border: 1px solid #3a4080;
     border-radius: 10px; aspect-ratio: 1;
@@ -332,16 +480,49 @@
   }
   .preview-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .preview-img .ph { color: var(--dim); font-size: 13px; }
-  .preview-info { display: flex; flex-direction: column; gap: 8px; }
+  .preview-info { display: flex; flex-direction: column; gap: 10px; }
   .preview-info h3 { color: var(--accent); margin: 0; font-size: 22px; }
+  .preview-section {
+    background: rgba(0,0,0,.22);
+    border: 1px solid #2a3060;
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .preview-section h4 {
+    margin: 0 0 6px;
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: 2px;
+    border-bottom: 1px dashed #3a4080;
+    padding-bottom: 4px;
+  }
   .preview-row {
     display: flex; gap: 10px; font-size: 13px;
-    padding: 6px 12px; background: rgba(0,0,0,.25);
-    border: 1px solid #2a3060; border-radius: 6px;
+    padding: 3px 0;
+    align-items: flex-start;
   }
-  .preview-row .k { color: var(--dim); min-width: 70px; }
-  .preview-row .v { color: var(--text); }
-  .preview-edits { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .preview-row .k { color: var(--dim); min-width: 70px; flex-shrink: 0; }
+  .preview-row .v { color: var(--text); flex: 1; }
+  .pv-stat-bars { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+  .pv-stat-bar { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .pv-stat-bar .lbl { width: 22px; color: var(--dim); font-weight: bold; }
+  .pv-stat-bar .track { flex: 1; height: 8px; background: #0a0a18; border: 1px solid #3a4080; border-radius: 3px; overflow: hidden; }
+  .pv-stat-bar .fill { height: 100%; }
+  .pv-stat-bar.hp .fill { background: linear-gradient(180deg, var(--hp), #2a9050); }
+  .pv-stat-bar.atk .fill { background: linear-gradient(180deg, var(--accent2), #802020); }
+  .pv-stat-bar.mp .fill { background: linear-gradient(180deg, var(--mp), #2070b0); }
+  .pv-stat-bar .val { width: 30px; text-align: right; color: var(--text); font-weight: bold; }
+  .pv-tech {
+    background: rgba(0,0,0,.3); border: 1px solid #3a4080; border-radius: 6px;
+    padding: 5px 10px; margin-top: 4px;
+    display: flex; align-items: center; gap: 10px; font-size: 12px;
+  }
+  .pv-tech.empty { opacity: .4; }
+  .pv-tech .pv-tech-nm { font-weight: bold; flex: 1; }
+  .pv-tech .pv-tech-cost { color: var(--mp); font-weight: bold; }
+  .pv-tech .pv-tech-cost.tp { color: var(--accent); }
+  .pv-tech .pv-tech-eff { color: var(--dim); font-size: 11px; }
+  .preview-edits { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
   .preview-edits .btn { font-size: 12px; padding: 6px 12px; }
 
   /* ========== Battle ========== */
@@ -486,7 +667,8 @@
     display: flex; flex-direction: column;
     pointer-events: none;
   }
-  .battle-overlay > * { pointer-events: auto; }
+  /* シーンが activeの時だけ子要素がクリック対象になる（他シーン表示中の誤介入防止）*/
+  .scene.active .battle-overlay > * { pointer-events: auto; }
   .log {
     margin: 0 16px 8px;
     background: rgba(0,0,0,.72);
@@ -647,7 +829,7 @@
       <div class="wizard">
         <div class="wizard-header">
           <h2>📷 キャラを投稿</h2>
-          <span class="page-indicator" id="pageIndicator">1 / 3</span>
+          <span class="page-indicator" id="pageIndicator">1 / 5</span>
         </div>
         <div class="wizard-body">
 
@@ -694,60 +876,35 @@
             </div>
           </div>
 
-          <!-- Page 2: ステータス・とくぎ -->
+          <!-- Page 2: ステータス型 -->
           <div class="wizard-page" data-page="2">
-            <div class="page-layout">
-              <div class="page-col">
-                <h3>💪 ステータス</h3>
-                <div class="field">
-                  <label>HP <span class="req">*</span> <span style="color:var(--dim);font-size:11px;">(推奨 50〜200)</span></label>
-                  <input id="fHP" class="num-input" type="number" min="1" max="9999" placeholder="100">
-                </div>
-                <div class="field">
-                  <label>攻撃 <span class="req">*</span> <span style="color:var(--dim);font-size:11px;">(推奨 5〜20)</span></label>
-                  <input id="fAtk" class="num-input" type="number" min="1" max="999" placeholder="10">
-                </div>
-                <div class="field">
-                  <label>防御 <span style="color:var(--dim);font-size:11px;">(推奨 0〜10)</span></label>
-                  <input id="fDef" class="num-input" type="number" min="0" max="999" placeholder="3">
-                </div>
-              </div>
-              <div class="page-col">
-                <h3>✨ とくぎ <span style="color:var(--dim);font-size:11px;font-weight:normal;">(まほうボタンで発動・任意)</span></h3>
-                <div class="field">
-                  <label>技の名前</label>
-                  <input id="fTechName" class="text-input" maxlength="20" placeholder="例：アクセラレーション">
-                </div>
-                <div class="field">
-                  <label>種類</label>
-                  <div class="role-toggle">
-                    <input type="radio" name="techType" id="tech-atk" value="attack" checked>
-                    <label for="tech-atk">⚔ 攻撃</label>
-                    <input type="radio" name="techType" id="tech-heal" value="heal">
-                    <label for="tech-heal">💚 回復</label>
-                  </div>
-                </div>
-                <div class="row2">
-                  <div class="field">
-                    <label>消費MP</label>
-                    <input id="fTechCost" class="num-input" type="number" min="0" max="20" value="3">
-                  </div>
-                  <div class="field">
-                    <label>威力倍率</label>
-                    <input id="fTechPower" class="num-input" type="number" step="0.1" min="0.5" max="10" value="2.0">
-                  </div>
-                </div>
-                <div style="font-size:11px;color:var(--dim);background:rgba(0,0,0,.25);padding:8px 10px;border-radius:6px;line-height:1.5;">
-                  攻撃の場合：攻撃力 × 倍率 のダメージ<br>
-                  回復の場合：HP最大値 × 倍率×0.15 を回復<br>
-                  ※何も入れなくてもOK（デフォルトの「まほう」が使われる）
-                </div>
-              </div>
+            <div class="page-section-head">
+              <h3>💪 ステータス型を選ぶ</h3>
+              <p>キャラの素ステータスが決まります</p>
             </div>
+            <div class="archetype-grid" id="archetypeList"></div>
           </div>
 
-          <!-- Page 3: プレビュー -->
+          <!-- Page 3: 特性 -->
           <div class="wizard-page" data-page="3">
+            <div class="page-section-head">
+              <h3>🎭 特性を選ぶ</h3>
+              <p>戦闘で発動する特殊効果。1つだけ装備できる</p>
+            </div>
+            <div class="trait-grid" id="traitList"></div>
+          </div>
+
+          <!-- Page 4: 技 -->
+          <div class="wizard-page" data-page="4">
+            <div class="page-section-head">
+              <h3>✨ 技を3つ登録</h3>
+              <p>名前を空欄にすればスキップOK / 🔮MP技はまほうボタン、⚡TP技はとくぎボタンから発動</p>
+            </div>
+            <div class="tech-slots" id="techSlots"></div>
+          </div>
+
+          <!-- Page 5: プレビュー -->
+          <div class="wizard-page" data-page="5">
             <div id="previewArea"></div>
           </div>
 
@@ -826,6 +983,16 @@
       <button class="btn" data-menu="title">← タイトルへ戻る</button>
     </section>
 
+    <!-- Tech popup (battle中・技選択) -->
+    <div class="tech-popup" id="techPopup">
+      <div class="backdrop" id="techPopupBackdrop"></div>
+      <div class="content">
+        <div class="title" id="techPopupTitle">技をえらぶ</div>
+        <div class="list" id="techPopupList"></div>
+        <button class="btn" id="techPopupCancel">キャンセル</button>
+      </div>
+    </div>
+
     <div class="toast" id="toast"></div>
   </main>
 </div>
@@ -836,10 +1003,60 @@ const SUPABASE_URL = 'https://iulhtentzliohwylcsqo.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9iTuPD3fEDazZYEMWyijWg_0WxMv_9B';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+//================= ステータス型・特性 定義 =================
+const ARCHETYPES = [
+  { id:'juusenshi',  emoji:'🛡', name:'重戦士',     hp:95,  atk:9,  mp:4,  desc:'タフだが火力低め' },
+  { id:'balancer',   emoji:'⚔', name:'バランサー', hp:65,  atk:13, mp:5,  desc:'万能・基準点' },
+  { id:'attacker',   emoji:'💥', name:'アタッカー', hp:38,  atk:19, mp:4,  desc:'高火力・脆い' },
+  { id:'shippuu',    emoji:'🏹', name:'疾風',       hp:50,  atk:15, mp:5,  desc:'攻撃寄り' },
+  { id:'madoushi',   emoji:'🧙', name:'魔導士',     hp:55,  atk:7,  mp:16, desc:'魔法主体' },
+  { id:'kenja',      emoji:'🔮', name:'賢者',       hp:60,  atk:10, mp:12, desc:'魔法＋耐久' },
+  { id:'kyojuu',     emoji:'👹', name:'巨獣',       hp:130, atk:11, mp:2,  desc:'超タンク' },
+  { id:'trickster',  emoji:'👼', name:'トリックスター', hp:42, atk:12, mp:10, desc:'読み合い向き' },
+];
+const ARCH_MAP = Object.fromEntries(ARCHETYPES.map(a => [a.id, a]));
+
+const TRAITS = [
+  { id:'teppeki',   emoji:'🛡', name:'鉄壁',     desc:'物理ダメ -30%' },
+  { id:'mahoutate', emoji:'🔮', name:'魔法盾',   desc:'魔法/とくぎダメ -40%' },
+  { id:'kairiki',   emoji:'⚔', name:'怪力',     desc:'こうげき威力 +30%' },
+  { id:'maryoku',   emoji:'✨', name:'魔力',     desc:'まほう/とくぎ威力 +30%' },
+  { id:'kaishin',   emoji:'💥', name:'会心',     desc:'クリ率+20%・倍率+0.3' },
+  { id:'rengeki',   emoji:'🗡', name:'連撃',     desc:'こうげき30%で2回ヒット' },
+  { id:'kyuuketsu', emoji:'🩸', name:'吸血',     desc:'こうげきダメ25%吸血' },
+  { id:'saisei',    emoji:'🌿', name:'再生',     desc:'自ターン末にHP10%回復' },
+  { id:'gyakkyou',  emoji:'🔥', name:'逆境',     desc:'HP30%以下で攻撃+50%' },
+  { id:'sensei',    emoji:'⚡', name:'先制',     desc:'戦闘開始時 TP+30' },
+];
+const TRAIT_MAP = Object.fromEntries(TRAITS.map(t => [t.id, t]));
+
+// 技の効果量を自動計算
+function calcTechEffect(tech){
+  const { type, resource, cost } = tech;
+  const c = +cost || 0;
+  if (type === 'attack') return { mult: resource === 'mp' ? 0.5 + c*0.5 : 0.5 + c*0.05 };
+  if (type === 'heal')   return { hpPct: resource === 'mp' ? 10 + c*6 : 15 + c*0.4 };
+  if (type === 'buff')   return { atkPlusPct: resource === 'mp' ? 15 + c*12 : 25 + c*1, turns: resource === 'mp' ? 2 : 3 };
+  return {};
+}
+function fmtTechEffect(tech){
+  const e = calcTechEffect(tech);
+  if (tech.type === 'attack') return `攻撃×${e.mult.toFixed(1)}`;
+  if (tech.type === 'heal')   return `HP${e.hpPct.toFixed(0)}%回復`;
+  if (tech.type === 'buff')   return `攻+${e.atkPlusPct.toFixed(0)}%・${e.turns}T`;
+  return '';
+}
+
 //================= 既定キャラ（DBが空でも遊べる用）=================
 const DEFAULTS = [
-  { role:'ally', name:'ふつうの勇者', hp:80, atk:10, def:3, taunt:'いくぞ！', image_url:null, submitter:'(プリセット)', size_scale:1.0, techs:[] },
-  { role:'enemy', name:'チャットスライム', hp:40, atk:6, def:0, taunt:'ﾌﾞﾙﾙ…', image_url:null, submitter:'(プリセット)', size_scale:1.0, techs:[] },
+  { archetype:'balancer', name:'ふつうの勇者', hp:65, atk:13, mp_max:5, def:0, trait:'kairiki', taunt:'いくぞ！', image_url:null, submitter:'(プリセット)', size_scale:1.0, role:'ally',
+    techs: [
+      { name:'メラ',   type:'attack', resource:'mp', cost:3 },
+      { name:'ヒール', type:'heal',   resource:'mp', cost:4 },
+      { name:'必殺斬', type:'attack', resource:'tp', cost:60 },
+    ] },
+  { archetype:'attacker', name:'チャットスライム', hp:38, atk:19, mp_max:4, def:0, trait:'kaishin', taunt:'ﾌﾞﾙﾙ…', image_url:null, submitter:'(プリセット)', size_scale:1.0, role:'enemy',
+    techs: [] },
 ];
 
 //================= 背景 =================
@@ -853,11 +1070,30 @@ const G = {
   pHP:0, pHPMax:0, pMP:3, pMPMax:5,
   pTP:0, pTPMax:100,
   eHP:0, eHPMax:0,
+  allyBuff:{atkMult:1, turnsLeft:0},
+  enemyBuff:{atkMult:1, turnsLeft:0},
   totalDmg:0, turns:0, startTime:0,
   guarding:false,
   pickerStage:null,
   wizardPage:1,
 };
+
+// キャラの特性 → 各種フラグに変換
+function traits(char){
+  const t = char?.trait;
+  return {
+    teppeki:   t === 'teppeki',
+    mahoutate: t === 'mahoutate',
+    kairiki:   t === 'kairiki',
+    maryoku:   t === 'maryoku',
+    kaishin:   t === 'kaishin',
+    rengeki:   t === 'rengeki',
+    kyuuketsu: t === 'kyuuketsu',
+    saisei:    t === 'saisei',
+    gyakkyou:  t === 'gyakkyou',
+    sensei:    t === 'sensei',
+  };
+}
 
 //================= ユーティリティ =================
 const $ = s => document.querySelector(s);
@@ -1123,28 +1359,200 @@ function onPickCharacter(c){
 //================= 投稿（3ページウィザード）=================
 let pickedFile = null;
 
+// ステータスバー用の最大値（バーの正規化に使う）
+const STAT_MAX = { hp: 180, atk: 22, mp: 18 };
+
+// 初回起動時にウィザードUIを構築
+function buildWizardUI() {
+  // ステータス型カード
+  $('#archetypeList').innerHTML = ARCHETYPES.map((a,i) => {
+    const hpPct = Math.min(100, a.hp / STAT_MAX.hp * 100);
+    const atkPct = Math.min(100, a.atk / STAT_MAX.atk * 100);
+    const mpPct = Math.min(100, a.mp / STAT_MAX.mp * 100);
+    return `
+    <label class="archetype-card">
+      <input type="radio" name="archetype" value="${a.id}" ${i===1?'checked':''}>
+      <div class="ac-head">
+        <span class="ac-emoji">${a.emoji}</span>
+        <span class="ac-name">${esc(a.name)}</span>
+      </div>
+      <div class="ac-bars">
+        <div class="ac-bar hp"><span class="ac-bar-lbl">HP</span><div class="ac-bar-track"><div class="ac-bar-fill" style="width:${hpPct}%"></div></div><span class="ac-bar-val">${a.hp}</span></div>
+        <div class="ac-bar atk"><span class="ac-bar-lbl">攻</span><div class="ac-bar-track"><div class="ac-bar-fill" style="width:${atkPct}%"></div></div><span class="ac-bar-val">${a.atk}</span></div>
+        <div class="ac-bar mp"><span class="ac-bar-lbl">MP</span><div class="ac-bar-track"><div class="ac-bar-fill" style="width:${mpPct}%"></div></div><span class="ac-bar-val">${a.mp}</span></div>
+      </div>
+      <div class="ac-desc">${esc(a.desc)}</div>
+    </label>`;
+  }).join('');
+
+  // 特性カード
+  $('#traitList').innerHTML = TRAITS.map((t,i) => `
+    <label class="trait-card">
+      <input type="radio" name="trait" value="${t.id}" ${i===0?'checked':''}>
+      <span class="tc-emoji">${t.emoji}</span>
+      <div class="tc-body">
+        <div class="tc-name">${esc(t.name)}</div>
+        <div class="tc-effect">${esc(t.desc)}</div>
+      </div>
+    </label>`).join('');
+
+  // 技スロット x3
+  $('#techSlots').innerHTML = [1,2,3].map(i => `
+    <div class="tech-slot" data-slot="${i}">
+      <div class="ts-head">
+        <span class="lbl">技${i}</span>
+      </div>
+      <div class="ts-row1">
+        <input class="text-input" placeholder="技の名前（空欄でスキップ）" data-tech-field="name${i}" maxlength="20">
+        <select class="text-input" data-tech-field="resource${i}">
+          <option value="mp">🔮 MP技</option>
+          <option value="tp">⚡ TP技</option>
+        </select>
+        <select class="text-input" data-tech-field="type${i}">
+          <option value="attack">⚔ 攻撃</option>
+          <option value="heal">💚 回復</option>
+          <option value="buff">💪 バフ</option>
+        </select>
+      </div>
+      <div class="ts-cost-row">
+        <label>コスト</label>
+        <input type="number" data-tech-field="cost${i}" value="3" min="1" max="100">
+        <span class="cost-hint" data-tech-hint="${i}">MP 1〜10</span>
+        <div class="ts-preview empty" data-tech-preview="${i}">
+          <span class="tp-effect">名前を入れてね</span>
+          <span class="tp-detail">→ 効果が自動計算</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // 選択カードクリック処理
+  const updateSelectVisual = (grp, selector) => {
+    $$(`${selector} input[name="${grp}"]`).forEach(inp => {
+      const card = inp.closest(selector);
+      if (card) card.classList.toggle('checked', inp.checked);
+    });
+  };
+  updateSelectVisual('archetype', '.archetype-card');
+  updateSelectVisual('trait', '.trait-card');
+  $$('.archetype-card, .trait-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.tagName === 'INPUT') return;
+      const inp = card.querySelector('input');
+      inp.checked = true;
+      const sel = inp.name === 'archetype' ? '.archetype-card' : '.trait-card';
+      updateSelectVisual(inp.name, sel);
+    });
+  });
+
+  // 技プレビュー更新（変化時に光る）
+  const updTechPv = (i) => {
+    const name = $(`[data-tech-field="name${i}"]`).value.trim();
+    const previewEl = $(`[data-tech-preview="${i}"]`);
+    if (!name) {
+      previewEl.classList.add('empty');
+      previewEl.querySelector('.tp-effect').textContent = '名前を入れてね';
+      previewEl.querySelector('.tp-detail').textContent = '→ 効果が自動計算';
+      return;
+    }
+    const resource = $(`[data-tech-field="resource${i}"]`).value;
+    const type = $(`[data-tech-field="type${i}"]`).value;
+    const cost = +$(`[data-tech-field="cost${i}"]`).value || 0;
+    previewEl.classList.remove('empty');
+    const eff = calcTechEffect({type,resource,cost});
+    let mainText = '', detailText = '';
+    const balAtk = 13;
+    if (type === 'attack') {
+      mainText = `⚔ ×${eff.mult.toFixed(2)}`;
+      detailText = `バランサーで ${Math.floor(balAtk * eff.mult)} ダメ`;
+    } else if (type === 'heal') {
+      mainText = `💚 ${eff.hpPct.toFixed(0)}% 回復`;
+      detailText = `バランサーで ${Math.floor(65 * eff.hpPct / 100)} 回復`;
+    } else if (type === 'buff') {
+      mainText = `💪 攻+${eff.atkPlusPct.toFixed(0)}%`;
+      detailText = `${eff.turns}ターン持続`;
+    }
+    previewEl.querySelector('.tp-effect').textContent = mainText;
+    previewEl.querySelector('.tp-detail').textContent = detailText;
+    previewEl.classList.remove('changed');
+    void previewEl.offsetWidth;
+    previewEl.classList.add('changed');
+  };
+  const updResourceHint = (i) => {
+    const resource = $(`[data-tech-field="resource${i}"]`).value;
+    const hint = $(`[data-tech-hint="${i}"]`);
+    if (hint) hint.textContent = resource === 'mp' ? 'MP 1〜10' : 'TP 10〜100';
+  };
+  [1,2,3].forEach(i => {
+    ['name','resource','type','cost'].forEach(f => {
+      const el = $(`[data-tech-field="${f}${i}"]`);
+      el.addEventListener('input', () => updTechPv(i));
+      el.addEventListener('change', () => updTechPv(i));
+    });
+    $(`[data-tech-field="resource${i}"]`).addEventListener('change', () => updResourceHint(i));
+  });
+}
+
+function resetWizardForm(){
+  const arc = document.querySelector('input[name="archetype"][value="balancer"]');
+  if (arc) { arc.checked = true; }
+  document.querySelectorAll('.archetype-card').forEach(c => c.classList.toggle('checked', c.querySelector('input').checked));
+  const tr = document.querySelector('input[name="trait"]');
+  if (tr) { tr.checked = true; }
+  document.querySelectorAll('.trait-card').forEach(c => c.classList.toggle('checked', c.querySelector('input').checked));
+  [1,2,3].forEach(i => {
+    $(`[data-tech-field="name${i}"]`).value = '';
+    $(`[data-tech-field="resource${i}"]`).value = 'mp';
+    $(`[data-tech-field="type${i}"]`).value = 'attack';
+    $(`[data-tech-field="cost${i}"]`).value = '3';
+    const el = $(`[data-tech-preview="${i}"]`);
+    if (el) {
+      el.classList.add('empty');
+      el.querySelector('.tp-effect').textContent = '技名を入力してね';
+      el.querySelector('.tp-detail').textContent = '入力すると効果が自動計算されます';
+    }
+    const hint = $(`[data-tech-hint="${i}"]`);
+    if (hint) hint.textContent = 'MP 1〜10';
+  });
+}
+
+function getFormTechs(){
+  return [1,2,3].map(i => {
+    const name = $(`[data-tech-field="name${i}"]`).value.trim();
+    if (!name) return null;
+    return {
+      name,
+      resource: $(`[data-tech-field="resource${i}"]`).value,
+      type: $(`[data-tech-field="type${i}"]`).value,
+      cost: +$(`[data-tech-field="cost${i}"]`).value || 1,
+    };
+  }).filter(Boolean);
+}
+
 function goSubmit(){
   show('submit');
-  $('#fName').value = ''; $('#fHP').value=''; $('#fAtk').value=''; $('#fDef').value='';
-  $('#fTaunt').value=''; $('#fImage').value=''; $('#fSubmitter').value = G.playerName || '';
-  $('#fTechName').value=''; $('#fTechCost').value='3'; $('#fTechPower').value='2.0';
+  $('#fName').value = '';
+  $('#fTaunt').value = '';
+  $('#fImage').value = '';
+  $('#fSubmitter').value = G.playerName || '';
   $('#filePickInner').innerHTML = '📷 タップして画像を選ぶ';
   $('#filePick').classList.remove('has');
   $('#size-m').checked = true;
-  $('#tech-atk').checked = true;
   $('#fBgRemove').checked = true;
   pickedFile = null;
+  resetWizardForm();
   gotoWizardPage(1);
 }
 function gotoWizardPage(n){
   G.wizardPage = n;
   $$('.wizard-page').forEach(p => p.classList.toggle('active', +p.dataset.page === n));
-  $('#pageIndicator').textContent = `${n} / 3`;
+  $('#pageIndicator').textContent = `${n} / 5`;
+  // 1ページ目以外はウィザード上部のヘッダーを非表示にして縦幅を確保
+  $('.wizard-header').style.display = n === 1 ? 'flex' : 'none';
   $('#btnWBack').style.display = n > 1 ? 'block' : 'none';
   $('#btnWCancel').style.display = n === 1 ? 'block' : 'none';
-  $('#btnWNext').style.display = n < 3 ? 'block' : 'none';
-  $('#btnWSubmit').style.display = n === 3 ? 'block' : 'none';
-  if (n === 3) renderPreview();
+  $('#btnWNext').style.display = n < 5 ? 'block' : 'none';
+  $('#btnWSubmit').style.display = n === 5 ? 'block' : 'none';
+  if (n === 5) renderPreview();
 }
 function validatePage(n){
   if (n === 1) {
@@ -1152,12 +1560,7 @@ function validatePage(n){
     return true;
   }
   if (n === 2) {
-    const hp = parseInt($('#fHP').value, 10);
-    const atk = parseInt($('#fAtk').value, 10);
-    const def = parseInt($('#fDef').value, 10) || 0;
-    if (!(hp >= 1 && hp <= 9999)) { toast('HPは1〜9999で入力', true); return false; }
-    if (!(atk >= 1 && atk <= 999)) { toast('攻撃は1〜999で入力', true); return false; }
-    if (def < 0 || def > 999) { toast('防御は0〜999', true); return false; }
+    // 型・特性は常にデフォルト選択あり。技は任意。バリデーション不要
     return true;
   }
   return true;
@@ -1168,14 +1571,23 @@ function renderPreview(){
   const sizeLabel = sizeVal === 0.65 ? '🐹 小' : sizeVal === 1.35 ? '🐲 大' : '👤 中';
   const taunt = $('#fTaunt').value.trim();
   const submitter = $('#fSubmitter').value.trim();
-  const hp = parseInt($('#fHP').value) || 0;
-  const atk = parseInt($('#fAtk').value) || 0;
-  const def = parseInt($('#fDef').value) || 0;
-  const tName = $('#fTechName').value.trim();
-  const tType = document.querySelector('input[name="techType"]:checked').value;
-  const tCost = parseInt($('#fTechCost').value) || 3;
-  const tPower = parseFloat($('#fTechPower').value) || 2.0;
+  const archId = document.querySelector('input[name="archetype"]:checked').value;
+  const arch = ARCH_MAP[archId];
+  const traitId = document.querySelector('input[name="trait"]:checked')?.value;
+  const trait = traitId ? TRAIT_MAP[traitId] : null;
+  const techs = getFormTechs();
   const imageSrc = pickedFile ? URL.createObjectURL(pickedFile) : '';
+  const hpPct = Math.min(100, arch.hp / STAT_MAX.hp * 100);
+  const atkPct = Math.min(100, arch.atk / STAT_MAX.atk * 100);
+  const mpPct = Math.min(100, arch.mp / STAT_MAX.mp * 100);
+  const techHtml = (techs.length === 0)
+    ? '<div class="pv-tech empty"><span class="pv-tech-nm">技は未設定</span></div>'
+    : techs.map(t => `
+        <div class="pv-tech">
+          <span class="pv-tech-nm">${esc(t.name)}</span>
+          <span class="pv-tech-cost ${t.resource}">${t.resource==='mp'?'🔮MP':'⚡TP'} ${t.cost}</span>
+          <span class="pv-tech-eff">${fmtTechEffect(t)}</span>
+        </div>`).join('');
   $('#previewArea').innerHTML = `
     <div class="preview-grid">
       <div class="preview-img">
@@ -1183,45 +1595,61 @@ function renderPreview(){
       </div>
       <div class="preview-info">
         <h3>${esc(name) || '(名前未入力)'}</h3>
-        <div class="preview-row"><span class="k">サイズ</span><span class="v">${sizeLabel}</span></div>
-        <div class="preview-row"><span class="k">HP</span><span class="v">${hp}</span></div>
-        <div class="preview-row"><span class="k">攻撃</span><span class="v">${atk}</span></div>
-        <div class="preview-row"><span class="k">防御</span><span class="v">${def}</span></div>
-        ${taunt ? `<div class="preview-row"><span class="k">決めゼリフ</span><span class="v">「${esc(taunt)}」</span></div>` : ''}
-        ${tName ? `<div class="preview-row"><span class="k">とくぎ</span><span class="v">${esc(tName)}（${tType === 'attack' ? '攻撃' : '回復'}・MP${tCost}・×${tPower}）</span></div>` : '<div class="preview-row"><span class="k">とくぎ</span><span class="v" style="color:var(--dim);">未設定（デフォルトのまほうが使われる）</span></div>'}
-        ${submitter ? `<div class="preview-row"><span class="k">投稿者</span><span class="v">${esc(submitter)}</span></div>` : ''}
+        <div class="preview-section">
+          <h4>👤 基本情報</h4>
+          <div class="preview-row"><span class="k">サイズ</span><span class="v">${sizeLabel}</span></div>
+          <div class="preview-row"><span class="k">決めゼリフ</span><span class="v">${taunt ? `「${esc(taunt)}」` : '<span style="color:var(--dim);">なし</span>'}</span></div>
+          <div class="preview-row"><span class="k">投稿者</span><span class="v">${submitter ? esc(submitter) : '<span style="color:var(--dim);">未記入</span>'}</span></div>
+        </div>
+        <div class="preview-section">
+          <h4>💪 ステータス型</h4>
+          <div class="preview-row"><span class="k">型</span><span class="v">${arch.emoji} <b>${esc(arch.name)}</b> - ${esc(arch.desc)}</span></div>
+          <div class="pv-stat-bars">
+            <div class="pv-stat-bar hp"><span class="lbl">HP</span><div class="track"><div class="fill" style="width:${hpPct}%"></div></div><span class="val">${arch.hp}</span></div>
+            <div class="pv-stat-bar atk"><span class="lbl">攻</span><div class="track"><div class="fill" style="width:${atkPct}%"></div></div><span class="val">${arch.atk}</span></div>
+            <div class="pv-stat-bar mp"><span class="lbl">MP</span><div class="track"><div class="fill" style="width:${mpPct}%"></div></div><span class="val">${arch.mp}</span></div>
+          </div>
+        </div>
+        <div class="preview-section">
+          <h4>🎭 特性</h4>
+          ${trait
+            ? `<div class="preview-row"><span class="v">${trait.emoji} <b>${esc(trait.name)}</b> - ${esc(trait.desc)}</span></div>`
+            : '<div class="preview-row"><span class="v" style="color:var(--dim);">未設定</span></div>'}
+        </div>
+        <div class="preview-section">
+          <h4>✨ 技</h4>
+          ${techHtml}
+        </div>
         <div class="preview-edits">
-          <button class="btn" id="btnEditP1">📝 1ページ目を編集</button>
-          <button class="btn" id="btnEditP2">📝 2ページ目を編集</button>
+          <button class="btn" data-edit-page="1">📝 基本情報</button>
+          <button class="btn" data-edit-page="2">💪 ステータス</button>
+          <button class="btn" data-edit-page="3">🎭 特性</button>
+          <button class="btn" data-edit-page="4">✨ 技</button>
         </div>
       </div>
     </div>
   `;
-  $('#btnEditP1')?.addEventListener('click', () => gotoWizardPage(1));
-  $('#btnEditP2')?.addEventListener('click', () => gotoWizardPage(2));
+  $$('[data-edit-page]').forEach(btn => btn.addEventListener('click', () => gotoWizardPage(+btn.dataset.editPage)));
 }
 async function doSubmit(){
   if (!validatePage(1) || !validatePage(2)) return;
+  const archId = document.querySelector('input[name="archetype"]:checked').value;
+  const arch = ARCH_MAP[archId];
+  const traitId = document.querySelector('input[name="trait"]:checked')?.value || null;
   const data = {
     role: 'ally',
+    archetype: archId,
     name: $('#fName').value.trim(),
-    hp: parseInt($('#fHP').value, 10),
-    atk: parseInt($('#fAtk').value, 10),
-    def: parseInt($('#fDef').value, 10) || 0,
+    hp: arch.hp,
+    atk: arch.atk,
+    def: 0,
+    mp_max: arch.mp,
+    trait: traitId,
     taunt: $('#fTaunt').value.trim() || null,
     submitter: $('#fSubmitter').value.trim() || G.playerName || null,
     size_scale: parseFloat(document.querySelector('input[name="size"]:checked').value),
-    techs: []
+    techs: getFormTechs(),
   };
-  const tName = $('#fTechName').value.trim();
-  if (tName) {
-    data.techs.push({
-      name: tName,
-      type: document.querySelector('input[name="techType"]:checked').value,
-      cost: parseInt($('#fTechCost').value, 10) || 3,
-      power: parseFloat($('#fTechPower').value) || 2.0,
-    });
-  }
   $('#btnWSubmit').disabled = true;
   $('#btnWSubmit').innerHTML = '<span class="spinner"></span> 投稿中…';
   try {
@@ -1303,8 +1731,13 @@ function startBattle(){
   const me = G.myChar, opp = G.oppChar;
   G.pHPMax = me.hp; G.pHP = me.hp;
   G.eHPMax = opp.hp; G.eHP = opp.hp;
-  G.pMP = 3; G.pMPMax = 5;
-  G.pTP = 0; G.pTPMax = 100;
+  G.pMPMax = me.mp_max || 5;
+  G.pMP = G.pMPMax;
+  G.pTPMax = 100;
+  const meT = traits(me);
+  G.pTP = meT.sensei ? 30 : 0;
+  G.allyBuff = { atkMult: 1, turnsLeft: 0 };
+  G.enemyBuff = { atkMult: 1, turnsLeft: 0 };
   G.totalDmg = 0; G.turns = 0; G.startTime = Date.now();
   G.guarding = false;
   // BG random
@@ -1344,12 +1777,15 @@ function refreshBars(){
   $('#allyTpTxt').textContent = `${G.pTP}/${G.pTPMax}`;
 }
 function enableCmds(on){
-  const tech = (G.myChar?.techs && G.myChar.techs[0]) || null;
-  const techCost = tech?.cost ?? 3;
+  const me = G.myChar;
+  const mpTechs = (me?.techs || []).filter(t => t.resource === 'mp');
+  const tpTechs = (me?.techs || []).filter(t => t.resource === 'tp');
+  const hasUsableMp = mpTechs.some(t => G.pMP >= t.cost);
+  const hasUsableTp = tpTechs.some(t => G.pTP >= t.cost);
   $$('.cmds .cmd-btn').forEach(b=>{
     b.disabled = !on;
-    if (b.dataset.cmd === 'magic') b.disabled = !on || G.pMP < techCost;
-    if (b.dataset.cmd === 'tokugi') b.disabled = !on || G.pTP < 30;
+    if (b.dataset.cmd === 'magic') b.disabled = !on || mpTechs.length === 0 || !hasUsableMp;
+    if (b.dataset.cmd === 'tokugi') b.disabled = !on || tpTechs.length === 0 || !hasUsableTp;
   });
 }
 function log(text, cls=''){
@@ -1381,79 +1817,142 @@ function popDmg(text, type='', side='enemy'){
 
 $$('.cmds .cmd-btn').forEach(b=> b.addEventListener('click', ()=>handleCmd(b.dataset.cmd)));
 
-async function handleCmd(cmd){
-  enableCmds(false);
-  G.turns++;
-  const me = G.myChar, opp = G.oppChar;
-  const ctx = { p: me.name, e: opp.name };
+// 技選択ポップアップ
+function showTechPopup(resource, callback){
+  const me = G.myChar;
+  const list = (me.techs || []).filter(t => t.resource === resource);
+  if (list.length === 0) { callback(null); return; }
+  if (list.length === 1) {
+    const t = list[0];
+    const cur = resource === 'mp' ? G.pMP : G.pTP;
+    if (cur < t.cost) { toast(resource === 'mp' ? 'MP不足' : 'TP不足', true); callback(null); return; }
+    callback(t);
+    return;
+  }
+  const pop = $('#techPopup');
+  $('#techPopupTitle').textContent = resource === 'mp' ? '🔮 まほうを えらぶ' : '⚡ とくぎを えらぶ';
+  const listEl = $('#techPopupList');
+  listEl.innerHTML = '';
+  list.forEach(t => {
+    const cur = resource === 'mp' ? G.pMP : G.pTP;
+    const ok = cur >= t.cost;
+    const card = document.createElement('div');
+    card.className = 'tech-card' + (ok ? '' : ' disabled');
+    card.innerHTML = `
+      <span class="nm">${esc(t.name)}</span>
+      <span class="cost ${resource}">${resource==='mp'?'MP':'TP'} ${t.cost}</span>
+      <span class="eff">${fmtTechEffect(t)}</span>
+    `;
+    if (ok) card.addEventListener('click', () => { pop.classList.remove('show'); callback(t); });
+    listEl.appendChild(card);
+  });
+  pop.classList.add('show');
+}
+$('#techPopupCancel').addEventListener('click', () => { $('#techPopup').classList.remove('show'); enableCmds(true); });
+$('#techPopupBackdrop').addEventListener('click', () => { $('#techPopup').classList.remove('show'); enableCmds(true); });
 
-  if (cmd === 'attack') {
-    if (me.taunt) showBubble('ally', me.taunt);
-    const miss = Math.random() < 0.08;
-    if (miss) {
-      log(fmt(pick(FUNNY.miss), ctx), 'sys');
-      popDmg('MISS', 'miss');
-    } else {
-      const crit = Math.random() < 0.18;
-      let dmg = Math.max(1, me.atk - (opp.def||0) + rand(-2,3));
-      if (crit) dmg = Math.floor(dmg * 1.8);
-      G.eHP -= dmg; G.totalDmg += dmg;
-      $('#enemySprite').classList.remove('hurt'); void $('#enemySprite').offsetWidth;
-      $('#enemySprite').classList.add('hurt');
-      popDmg(dmg, crit ? 'crit' : '');
-      if (crit) log(pick(FUNNY.crit), 'crit');
-      log(fmt(pick(FUNNY.attackGeneric), ctx) + ` ${dmg} のダメージ！`, 'dmg');
-    }
-  }
-  else if (cmd === 'magic') {
-    // キャラ固有のとくぎ（無ければデフォルトのまほう）
-    const tech = (Array.isArray(me.techs) && me.techs[0]) || { name:'まほう', type:'attack', cost:3, power:2.2 };
-    if (G.pMP < tech.cost) { enableCmds(true); return; }
-    G.pMP -= tech.cost;
-    showBubble('ally', '✨ ' + tech.name + '！');
-    if (tech.type === 'heal') {
-      const heal = Math.min(G.pHPMax - G.pHP, Math.max(1, Math.floor(me.hp * tech.power * 0.15)));
-      G.pHP += heal;
-      popDmg('+'+heal, 'heal', 'ally');
-      log(`💚 ${me.name} の ${tech.name}！ HP ${heal} 回復！`, 'heal');
-    } else {
-      const dmg = Math.max(1, Math.floor(me.atk * tech.power) - Math.floor((opp.def||0)/2) + rand(0,6));
-      G.eHP -= dmg; G.totalDmg += dmg;
-      $('#enemySprite').classList.remove('hurt'); void $('#enemySprite').offsetWidth;
-      $('#enemySprite').classList.add('hurt');
-      popDmg(dmg, 'crit');
-      log(`✨ ${me.name} の ${tech.name}！ ${dmg} のダメージ！`, 'crit');
-    }
-  }
-  else if (cmd === 'tokugi') {
-    if (G.pTP < 30) { enableCmds(true); return; }
-    G.pTP -= 30;
-    showBubble('ally', '⚡ とくぎ！');
-    const dmg = Math.max(1, Math.floor(me.atk * 1.8) - Math.floor((opp.def||0)/2) + rand(2,6));
+// 技実行
+function executeTech(tech){
+  const me = G.myChar, opp = G.oppChar;
+  const meT = traits(me), oppT = traits(opp);
+  const eff = calcTechEffect(tech);
+  showBubble('ally', '✨ ' + tech.name + '！');
+  if (tech.type === 'attack') {
+    let mult = eff.mult;
+    if (meT.maryoku) mult *= 1.3;
+    if (meT.gyakkyou && G.pHP / G.pHPMax < 0.3) mult *= 1.5;
+    let dmg = Math.max(1, Math.floor(me.atk * mult * (G.allyBuff.atkMult||1)) + rand(0, 6));
+    if (oppT.mahoutate) dmg = Math.floor(dmg * 0.6);
+    dmg = Math.max(1, dmg);
     G.eHP -= dmg; G.totalDmg += dmg;
     $('#enemySprite').classList.remove('hurt'); void $('#enemySprite').offsetWidth;
     $('#enemySprite').classList.add('hurt');
     popDmg(dmg, 'crit');
-    log(`⚡ ${me.name} の とくぎ炸裂！ ${dmg} のダメージ！`, 'crit');
+    log(`✨ ${me.name} の ${tech.name}！ ${dmg} のダメージ！`, 'crit');
+  } else if (tech.type === 'heal') {
+    const heal = Math.min(G.pHPMax - G.pHP, Math.max(1, Math.floor(G.pHPMax * eff.hpPct / 100)));
+    G.pHP += heal;
+    popDmg('+'+heal, 'heal', 'ally');
+    log(`💚 ${me.name} の ${tech.name}！ HP ${heal} 回復！`, 'heal');
+  } else if (tech.type === 'buff') {
+    G.allyBuff = { atkMult: 1 + eff.atkPlusPct / 100, turnsLeft: eff.turns };
+    popDmg('UP!', 'heal', 'ally');
+    log(`💪 ${me.name} の ${tech.name}！ 攻撃 +${eff.atkPlusPct.toFixed(0)}% (${eff.turns}T)`, 'crit');
   }
-  else if (cmd === 'run') {
-    log('にげだした…', 'sys');
-    await sleep(700);
-    goTitle();
+}
+
+// プレイヤー攻撃（特性適用）
+function doPlayerAttack(){
+  const me = G.myChar, opp = G.oppChar;
+  const meT = traits(me), oppT = traits(opp);
+  if (me.taunt) showBubble('ally', me.taunt);
+  const miss = Math.random() < 0.08;
+  if (miss) {
+    log(fmt(pick(FUNNY.miss), { p:me.name, e:opp.name }), 'sys');
+    popDmg('MISS', 'miss');
     return;
   }
+  const hit = () => {
+    const critRate = 0.18 + (meT.kaishin ? 0.20 : 0);
+    const critMult = 1.8  + (meT.kaishin ? 0.30 : 0);
+    let dmg = Math.max(1, me.atk + rand(-2,3));
+    dmg = Math.floor(dmg * (G.allyBuff.atkMult || 1));
+    if (meT.kairiki) dmg = Math.floor(dmg * 1.3);
+    if (meT.gyakkyou && G.pHP / G.pHPMax < 0.3) dmg = Math.floor(dmg * 1.5);
+    const isCrit = Math.random() < critRate;
+    if (isCrit) dmg = Math.floor(dmg * critMult);
+    if (oppT.teppeki) dmg = Math.floor(dmg * 0.7);
+    dmg = Math.max(1, dmg);
+    G.eHP -= dmg; G.totalDmg += dmg;
+    $('#enemySprite').classList.remove('hurt'); void $('#enemySprite').offsetWidth;
+    $('#enemySprite').classList.add('hurt');
+    popDmg(dmg, isCrit ? 'crit' : '');
+    if (isCrit) log(pick(FUNNY.crit), 'crit');
+    log(fmt(pick(FUNNY.attackGeneric), { p:me.name, e:opp.name }) + ` ${dmg} のダメージ！`, 'dmg');
+    if (meT.kyuuketsu) {
+      const heal = Math.max(1, Math.floor(dmg * 0.25));
+      const realHeal = Math.min(G.pHPMax - G.pHP, heal);
+      if (realHeal > 0) { G.pHP += realHeal; popDmg('+'+realHeal, 'heal', 'ally'); }
+    }
+  };
+  hit();
+  if (meT.rengeki && G.eHP > 0 && Math.random() < 0.3) {
+    setTimeout(() => { hit(); refreshBars(); log('💥 連撃！もう一度ヒット！', 'crit'); }, 250);
+  }
+}
+
+// 自ターン終了処理
+function endOfPlayerTurn(){
+  const meT = traits(G.myChar);
+  if (meT.saisei && G.pHP < G.pHPMax && G.pHP > 0) {
+    const regen = Math.max(1, Math.floor(G.pHPMax * 0.10));
+    G.pHP = Math.min(G.pHPMax, G.pHP + regen);
+    popDmg('+'+regen, 'heal', 'ally');
+  }
+  if (G.allyBuff.turnsLeft > 0) {
+    G.allyBuff.turnsLeft--;
+    if (G.allyBuff.turnsLeft === 0) {
+      G.allyBuff.atkMult = 1;
+      log('攻撃UPの効果が切れた', 'sys');
+    }
+  }
+}
+
+async function finishPlayerTurn(){
   refreshBars();
   await sleep(700);
   if (G.eHP <= 0) {
     $('#enemySprite').classList.add('dying');
-    log(`${opp.name} を たおした！`, 'crit');
+    log(`${G.oppChar.name} を たおした！`, 'crit');
     await sleep(900);
     endBattle(true);
     return;
   }
+  endOfPlayerTurn();
+  refreshBars();
   await enemyTurn();
   if (G.pHP <= 0) {
-    log(`${me.name} は ちからつきた…`, 'sys');
+    log(`${G.myChar.name} は ちからつきた…`, 'sys');
     await sleep(900);
     endBattle(false);
     return;
@@ -1461,23 +1960,78 @@ async function handleCmd(cmd){
   G.guarding = false;
   enableCmds(true);
 }
-async function enemyTurn(){
-  const me = G.myChar, opp = G.oppChar;
-  const ctx = { p: me.name, e: opp.name };
-  if (Math.random() < 0.08) {
-    log(fmt(pick(FUNNY.enemyMiss), ctx), 'sys');
+
+async function handleCmd(cmd){
+  if (cmd === 'run') {
+    enableCmds(false);
+    log('にげだした…', 'sys');
+    await sleep(700);
+    goTitle();
     return;
   }
-  if (opp.taunt && Math.random() < 0.4) showBubble('enemy', opp.taunt);
-  let dmg = Math.max(1, opp.atk - (me.def||0) + rand(-2,3));
-  if (G.guarding) dmg = Math.max(0, Math.floor(dmg * 0.4));
-  G.pHP -= dmg;
-  // ダメージを受けたらTP上昇
-  G.pTP = Math.min(G.pTPMax, G.pTP + rand(15, 25));
-  popDmg(dmg, '', 'ally');
-  $('#allySprite').classList.remove('hurt'); void $('#allySprite').offsetWidth;
-  $('#allySprite').classList.add('hurt');
-  log(fmt(pick(FUNNY.enemyAtk), ctx) + ` ${dmg} のダメージ！`, 'dmg');
+  if (cmd === 'attack') {
+    enableCmds(false);
+    G.turns++;
+    doPlayerAttack();
+    await finishPlayerTurn();
+    return;
+  }
+  if (cmd === 'magic' || cmd === 'tokugi') {
+    enableCmds(false);
+    const resource = cmd === 'magic' ? 'mp' : 'tp';
+    showTechPopup(resource, async (tech) => {
+      if (!tech) { enableCmds(true); return; }
+      G.turns++;
+      if (resource === 'mp') G.pMP -= tech.cost;
+      else G.pTP -= tech.cost;
+      executeTech(tech);
+      await finishPlayerTurn();
+    });
+    return;
+  }
+}
+
+async function enemyTurn(){
+  const me = G.myChar, opp = G.oppChar;
+  const meT = traits(me), oppT = traits(opp);
+  if (Math.random() < 0.08) {
+    log(fmt(pick(FUNNY.enemyMiss), { p:me.name, e:opp.name }), 'sys');
+  } else {
+    if (opp.taunt && Math.random() < 0.4) showBubble('enemy', opp.taunt);
+    const hitEnemy = () => {
+      const critRate = 0.15 + (oppT.kaishin ? 0.20 : 0);
+      const critMult = 1.5  + (oppT.kaishin ? 0.30 : 0);
+      let dmg = Math.max(1, opp.atk + rand(-2,3));
+      if (oppT.kairiki) dmg = Math.floor(dmg * 1.3);
+      if (oppT.gyakkyou && G.eHP / G.eHPMax < 0.3) dmg = Math.floor(dmg * 1.5);
+      const isCrit = Math.random() < critRate;
+      if (isCrit) dmg = Math.floor(dmg * critMult);
+      if (G.guarding) dmg = Math.max(0, Math.floor(dmg * 0.4));
+      if (meT.teppeki) dmg = Math.floor(dmg * 0.7);
+      dmg = Math.max(1, dmg);
+      G.pHP -= dmg;
+      G.pTP = Math.min(G.pTPMax, G.pTP + rand(15, 25));
+      popDmg(dmg, isCrit ? 'crit' : '', 'ally');
+      $('#allySprite').classList.remove('hurt'); void $('#allySprite').offsetWidth;
+      $('#allySprite').classList.add('hurt');
+      if (isCrit) log('💥 敵の 痛恨の一撃！', 'crit');
+      log(fmt(pick(FUNNY.enemyAtk), { p:me.name, e:opp.name }) + ` ${dmg} のダメージ！`, 'dmg');
+      if (oppT.kyuuketsu) {
+        const heal = Math.max(1, Math.floor(dmg * 0.25));
+        const realHeal = Math.min(G.eHPMax - G.eHP, heal);
+        if (realHeal > 0) { G.eHP += realHeal; popDmg('+'+realHeal, 'heal', 'enemy'); }
+      }
+    };
+    hitEnemy();
+    if (oppT.rengeki && G.pHP > 0 && Math.random() < 0.3) {
+      setTimeout(() => { hitEnemy(); refreshBars(); log('💥 敵の 連撃！', 'crit'); }, 250);
+    }
+  }
+  if (oppT.saisei && G.eHP < G.eHPMax && G.eHP > 0) {
+    const regen = Math.max(1, Math.floor(G.eHPMax * 0.10));
+    G.eHP = Math.min(G.eHPMax, G.eHP + regen);
+    popDmg('+'+regen, 'heal', 'enemy');
+  }
   refreshBars();
 }
 
@@ -1515,7 +2069,8 @@ function endBattle(win){
   show('end');
 }
 
-// バックグラウンドでキャラロード（先取り）
+// 起動時：ウィザードUI構築 + キャラロード
+buildWizardUI();
 loadCharacters();
 </script>
 </body>
