@@ -941,7 +941,7 @@
             <div class="nm" id="allyNm">仲間</div>
             <div class="bar-row"><span class="lbl">HP</span><div class="bar hp" id="allyHpBar"><div class="fill" id="allyHpFill"></div></div><span class="num" id="allyHpTxt">0/0</span></div>
             <div class="bar-row"><span class="lbl">MP</span><div class="bar mp" id="allyMpBar"><div class="fill" id="allyMpFill"></div></div><span class="num" id="allyMpTxt">0/0</span></div>
-            <div class="bar-row"><span class="lbl">TP</span><div class="bar tp" id="allyTpBar"><div class="fill" id="allyTpFill"></div></div><span class="num" id="allyTpTxt">0/100</span></div>
+            <div class="bar-row"><span class="lbl">TP</span><div class="bar tp" id="allyTpBar"><div class="fill" id="allyTpFill"></div></div><span class="num" id="allyTpTxt">0/10</span></div>
           </div>
           <div class="hud enemy" id="hudEnemy">
             <div class="nm" id="enemyNm">敵</div>
@@ -1061,9 +1061,10 @@ const TRAIT_MAP = Object.fromEntries(TRAITS.map(t => [t.id, t]));
 function calcTechEffect(tech){
   const { type, resource, cost } = tech;
   const c = +cost || 0;
-  if (type === 'attack') return { mult: resource === 'mp' ? 0.5 + c*0.5 : 0.5 + c*0.05 };
-  if (type === 'heal')   return { hpPct: resource === 'mp' ? 10 + c*6 : 15 + c*0.4 };
-  if (type === 'buff')   return { atkPlusPct: resource === 'mp' ? 15 + c*12 : 25 + c*1, turns: resource === 'mp' ? 2 : 3 };
+  // MP/TPで同じ式に統一（durationだけTPが少し長い）
+  if (type === 'attack') return { mult: 0.5 + c*0.5 };
+  if (type === 'heal')   return { hpPct: 10 + c*6 };
+  if (type === 'buff')   return { atkPlusPct: 10 + c*5, turns: resource === 'mp' ? 2 : 3 };
   return {};
 }
 function fmtTechEffect(tech){
@@ -1080,7 +1081,7 @@ const DEFAULTS = [
     techs: [
       { name:'メラ',   type:'attack', resource:'mp', cost:3 },
       { name:'ヒール', type:'heal',   resource:'mp', cost:4 },
-      { name:'必殺斬', type:'attack', resource:'tp', cost:60 },
+      { name:'必殺斬', type:'attack', resource:'tp', cost:6 },
     ] },
   { archetype:'attacker', name:'チャットスライム', hp:38, atk:19, mp_max:4, def:0, trait:'kaishin', taunt:'ﾌﾞﾙﾙ…', image_url:null, submitter:'(プリセット)', size_scale:1.0, role:'enemy',
     techs: [] },
@@ -1095,7 +1096,7 @@ const G = {
   myChar: null, oppChar: null,
   characters: [], loaded: false,
   pHP:0, pHPMax:0, pMP:3, pMPMax:5,
-  pTP:0, pTPMax:100,
+  pTP:0, pTPMax:10,
   eHP:0, eHPMax:0,
   allyBuff:{atkMult:1, turnsLeft:0},
   enemyBuff:{atkMult:1, turnsLeft:0},
@@ -1154,6 +1155,13 @@ function applyArchetypeStats(c){
     c.hp = a.hp;
     c.atk = a.atk;
     c.mp_max = a.mp;
+  }
+  // 旧TPスケール(10-100)→新スケール(1-10)へ自動変換、小数も保持
+  if (Array.isArray(c.techs)) {
+    c.techs = c.techs.map(t => {
+      if (t.resource === 'tp' && t.cost > 10) return { ...t, cost: t.cost / 10 };
+      return t;
+    });
   }
   return c;
 }
@@ -1483,7 +1491,8 @@ function startEditCharacter(c){
       $(`[data-tech-field="name${i+1}"]`).value = t.name || '';
       $(`[data-tech-field="resource${i+1}"]`).value = t.resource || 'mp';
       $(`[data-tech-field="type${i+1}"]`).value = t.type || 'attack';
-      $(`[data-tech-field="cost${i+1}"]`).value = t.cost || 3;
+      // 旧データの小数costは表示・編集時は整数に丸める
+      $(`[data-tech-field="cost${i+1}"]`).value = Math.round(t.cost) || 3;
     }
   }
   // 既存画像プレビュー
@@ -1563,7 +1572,7 @@ function buildWizardUI() {
       </div>
       <div class="ts-cost-row">
         <label>コスト</label>
-        <input type="number" data-tech-field="cost${i}" value="3" min="1" max="100">
+        <input type="number" data-tech-field="cost${i}" value="3" min="1" max="10">
         <span class="cost-hint" data-tech-hint="${i}">MP 1〜10</span>
         <div class="ts-preview empty" data-tech-preview="${i}">
           <span class="tp-effect">名前を入れてね</span>
@@ -1629,27 +1638,19 @@ function buildWizardUI() {
     const hint = $(`[data-tech-hint="${i}"]`);
     const costInput = $(`[data-tech-field="cost${i}"]`);
     const v = +costInput.value;
-    if (resource === 'mp') {
-      if (hint) hint.textContent = 'MP 1〜10';
-      costInput.min = 1; costInput.max = 10;
-      if (v > 10) { costInput.value = 10; toast(`技${i}：MP技は1〜10なのでコストを10に調整`, true); }
-      else if (v < 1) { costInput.value = 1; toast(`技${i}：MP技は1〜10なのでコストを1に調整`, true); }
-    } else {
-      if (hint) hint.textContent = 'TP 10〜100';
-      costInput.min = 10; costInput.max = 100;
-      if (v > 100) { costInput.value = 100; toast(`技${i}：TP技は10〜100なのでコストを100に調整`, true); }
-      else if (v < 10) { costInput.value = 10; toast(`技${i}：TP技は10〜100なのでコストを10に調整`, true); }
-    }
+    const lbl = resource === 'mp' ? 'MP' : 'TP';
+    if (hint) hint.textContent = `${lbl} 1〜10`;
+    costInput.min = 1; costInput.max = 10;
+    if (v > 10) { costInput.value = 10; toast(`技${i}：${lbl}は1〜10なのでコストを10に調整`, true); }
+    else if (v < 1) { costInput.value = 1; toast(`技${i}：${lbl}は1〜10なのでコストを1に調整`, true); }
   };
   const clampCost = (i) => {
     const resource = $(`[data-tech-field="resource${i}"]`).value;
     const costInput = $(`[data-tech-field="cost${i}"]`);
     const v = +costInput.value;
-    const min = resource === 'mp' ? 1 : 10;
-    const max = resource === 'mp' ? 10 : 100;
     const lbl = resource === 'mp' ? 'MP' : 'TP';
-    if (v > max) { costInput.value = max; toast(`技${i}：${lbl}コストの上限は${max}（自動で${max}に調整）`, true); }
-    else if (v < min) { costInput.value = min; toast(`技${i}：${lbl}コストの下限は${min}（自動で${min}に調整）`, true); }
+    if (v > 10) { costInput.value = 10; toast(`技${i}：${lbl}コストの上限は10（自動で10に調整）`, true); }
+    else if (v < 1) { costInput.value = 1; toast(`技${i}：${lbl}コストの下限は1（自動で1に調整）`, true); }
   };
   [1,2,3].forEach(i => {
     ['name','resource','type','cost'].forEach(f => {
@@ -1746,12 +1747,11 @@ function validatePage(n){
       if (!name) continue;
       const resource = $(`[data-tech-field="resource${i}"]`).value;
       const cost = +$(`[data-tech-field="cost${i}"]`).value;
-      if (resource === 'mp') {
-        if (cost < 1 || cost > 10) { toast(`技${i}: MPコストは1〜10`, true); return false; }
-        if (cost > mpCap) { toast(`技${i}: MPコスト${cost}は あなたのMP上限${mpCap}を超えてる（使えなくなる）`, true); return false; }
+      if (cost < 1 || cost > 10) {
+        toast(`技${i}: コストは1〜10`, true); return false;
       }
-      if (resource === 'tp' && (cost < 10 || cost > 100)) {
-        toast(`技${i}: TPコストは10〜100`, true); return false;
+      if (resource === 'mp' && cost > mpCap) {
+        toast(`技${i}: MPコスト${cost}は あなたのMP上限${mpCap}を超えてる`, true); return false;
       }
     }
     return true;
@@ -1778,7 +1778,7 @@ function renderPreview(){
     : techs.map(t => `
         <div class="pv-tech">
           <span class="pv-tech-nm">${esc(t.name)}</span>
-          <span class="pv-tech-cost ${t.resource}">${t.resource==='mp'?'🔮MP':'⚡TP'} ${t.cost}</span>
+          <span class="pv-tech-cost ${t.resource}">${t.resource==='mp'?'🔮MP':'⚡TP'} ${Math.round(t.cost)}</span>
           <span class="pv-tech-eff">${fmtTechEffect(t)}</span>
         </div>`).join('');
   $('#previewArea').innerHTML = `
@@ -1940,9 +1940,9 @@ function startBattle(){
   G.eHPMax = opp.hp; G.eHP = opp.hp;
   G.pMPMax = me.mp_max || 5;
   G.pMP = G.pMPMax;
-  G.pTPMax = 100;
+  G.pTPMax = 10;
   const meT = traits(me);
-  G.pTP = meT.sensei ? 30 : 0;
+  G.pTP = meT.sensei ? 3 : 0;
   G.allyBuff = { atkMult: 1, turnsLeft: 0 };
   G.enemyBuff = { atkMult: 1, turnsLeft: 0 };
   G.totalDmg = 0; G.turns = 0; G.startTime = Date.now();
@@ -1981,7 +1981,7 @@ function refreshBars(){
   $('#allyMpTxt').textContent = `${G.pMP}/${G.pMPMax}`;
   const tP = Math.max(0, G.pTP/G.pTPMax*100);
   $('#allyTpFill').style.width = tP+'%';
-  $('#allyTpTxt').textContent = `${G.pTP}/${G.pTPMax}`;
+  $('#allyTpTxt').textContent = `${Math.round(G.pTP)}/${G.pTPMax}`;
 }
 function enableCmds(on){
   const me = G.myChar;
@@ -2047,7 +2047,7 @@ function showTechPopup(resource, callback){
     card.className = 'tech-card' + (ok ? '' : ' disabled');
     card.innerHTML = `
       <span class="nm">${esc(t.name)}</span>
-      <span class="cost ${resource}">${resource==='mp'?'MP':'TP'} ${t.cost}</span>
+      <span class="cost ${resource}">${resource==='mp'?'MP':'TP'} ${Math.round(t.cost)}</span>
       <span class="eff">${fmtTechEffect(t)}</span>
     `;
     if (ok) card.addEventListener('click', () => { pop.classList.remove('show'); callback(t); });
@@ -2217,7 +2217,7 @@ async function enemyTurn(){
       if (meT.teppeki) dmg = Math.floor(dmg * 0.7);
       dmg = Math.max(1, dmg);
       G.pHP -= dmg;
-      G.pTP = Math.min(G.pTPMax, G.pTP + rand(15, 25));
+      G.pTP = Math.min(G.pTPMax, G.pTP + rand(15, 25) / 10);
       popDmg(dmg, isCrit ? 'crit' : '', 'ally');
       $('#allySprite').classList.remove('hurt'); void $('#allySprite').offsetWidth;
       $('#allySprite').classList.add('hurt');
