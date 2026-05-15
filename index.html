@@ -132,51 +132,52 @@
   }
   .title-bg {
     position: absolute; inset: 0;
+    background-image: url('images/title/title_main.jpg');
     background-size: cover; background-position: center;
-    filter: brightness(.55) blur(1px) saturate(1.1);
-    transition: opacity .4s;
+    filter: saturate(1.05);
   }
   .title-bg::after {
     content: ""; position: absolute; inset: 0;
-    background:
-      radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,.5) 80%),
-      linear-gradient(180deg, rgba(0,0,0,.4) 0%, transparent 30%, rgba(0,0,0,.6) 100%);
+    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.5) 85%, rgba(0,0,0,.75) 100%);
   }
   .title-content {
     position: relative; z-index: 2;
     flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: space-between;
-    padding: 24px 20px;
+    align-items: center; justify-content: flex-end;
+    padding: 14px 20px 22px;
+    gap: 10px;
   }
-  .logo {
-    font-size: clamp(40px, 7vw, 80px);
-    font-weight: 900;
-    color: var(--accent);
-    text-shadow:
-      0 0 16px rgba(255,210,74,.7),
-      3px 3px 0 #b8860b,
-      6px 6px 0 #5a4400,
-      0 0 30px rgba(255,210,74,.3);
-    letter-spacing: 6px;
-    line-height: 1;
-    text-align: center;
+  .logo, .title-cover { display: none; }
+
+  /* Image buttons */
+  .img-btn {
+    background: transparent; border: 0; padding: 0;
+    cursor: pointer; position: relative;
+    display: block;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.6));
+    transition: transform .1s, filter .15s;
   }
-  .logo small {
-    display: block; font-size: 0.35em;
-    color: #d4b04a; text-shadow: 2px 2px 0 #5a4400;
-    letter-spacing: 4px; margin-top: 6px;
+  .img-btn:hover { filter: brightness(1.1) drop-shadow(0 6px 16px rgba(0,0,0,.7)); transform: translateY(-2px); }
+  .img-btn:active { transform: translateY(1px); }
+  .img-btn img { display: block; max-width: 100%; height: auto; pointer-events: none; }
+  .img-btn .state-pressed {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0; transition: opacity .08s;
   }
-  .title-cover {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-    width: 100%;
+  .img-btn:active .state-pressed { opacity: 1; }
+  .img-btn:active .state-normal { opacity: 0; }
+  .btn-battle { width: clamp(240px, 28vw, 360px); }
+  .title-sub { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .btn-sub { width: clamp(140px, 16vw, 200px); }
+  .title-name {
+    background: rgba(0,0,0,.55); border: 1px solid rgba(255,210,74,.5);
+    backdrop-filter: blur(6px);
+    color: var(--text); font: inherit; font-size: 13px;
+    padding: 6px 14px; border-radius: 6px; text-align: center;
+    width: 240px;
+    margin-bottom: 4px;
   }
-  .title-cover img {
-    max-height: 100%;
-    max-width: 280px;
-    object-fit: contain;
-    border-radius: 12px;
-    box-shadow: 0 0 40px rgba(0,0,0,.8), 0 0 0 1px rgba(255,210,74,.3);
-  }
+  .title-name::placeholder { color: rgba(255,255,255,.4); }
   .title-actions {
     display: flex; flex-direction: column;
     align-items: center; gap: 16px;
@@ -251,11 +252,27 @@
     padding: 40px 20px; line-height: 1.7;
   }
 
-  /* ========== Submit Form ========== */
-  #scene-submit { padding: 12px 20px; overflow-y: auto; }
-  .form-wrap { max-width: 600px; margin: 0 auto; width: 100%; padding-bottom: 20px; }
-  .form-wrap h2 { color: var(--accent); margin: 0 0 10px; text-align: center; font-size: 18px; }
-  .field { margin-bottom: 10px; }
+  /* ========== Submit Wizard ========== */
+  #scene-submit { padding: 14px 22px; }
+  .wizard { height: 100%; display: flex; flex-direction: column; max-width: 1000px; margin: 0 auto; }
+  .wizard-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; padding-bottom: 8px;
+    border-bottom: 1px solid #3a4080;
+  }
+  .wizard-header h2 { color: var(--accent); margin: 0; font-size: 17px; }
+  .page-indicator {
+    font-size: 12px; color: var(--dim);
+    background: rgba(255,210,74,.1); border: 1px solid rgba(255,210,74,.3);
+    padding: 4px 10px; border-radius: 12px;
+  }
+  .wizard-body { flex: 1; overflow-y: auto; padding: 4px 2px; }
+  .wizard-page { display: none; }
+  .wizard-page.active { display: block; }
+  .page-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .page-col { display: flex; flex-direction: column; gap: 10px; }
+  .page-col h3 { color: var(--accent); font-size: 13px; margin: 0 0 4px; letter-spacing: 2px; }
+  .field { margin: 0; }
   .field label { display: block; font-size: 12px; color: var(--dim); margin-bottom: 3px; }
   .field label .req { color: var(--accent2); }
   .text-input, .num-input {
@@ -263,39 +280,75 @@
     border: 1px solid #3a4080;
     color: var(--text);
     font: inherit; font-size: 13px;
-    padding: 7px 10px;
+    padding: 8px 11px;
     border-radius: 6px;
     width: 100%;
   }
+  .text-input:focus, .num-input:focus { outline: none; border-color: var(--accent); }
   .role-toggle { display: flex; gap: 6px; }
   .role-toggle label {
     flex: 1; text-align: center;
     background: var(--panel2); border: 2px solid #3a4080;
-    border-radius: 8px; padding: 8px; cursor: pointer;
+    border-radius: 8px; padding: 8px 6px; cursor: pointer;
     font-weight: bold; transition: all .15s; font-size: 13px; margin: 0;
   }
   .role-toggle input { display: none; }
-  .role-toggle input[value="ally"]:checked + label { border-color: var(--ally); background: rgba(75,196,255,.12); color: var(--ally); }
-  .role-toggle input[value="enemy"]:checked + label { border-color: var(--accent2); background: rgba(255,93,143,.12); color: var(--accent2); }
+  .role-toggle input:checked + label { border-color: var(--accent); background: rgba(255,210,74,.12); color: var(--accent); }
   .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .row2 { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .bg-toggle {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text);
+    background: rgba(75,196,255,.08); border: 1px solid rgba(75,196,255,.3);
+    padding: 7px 11px; border-radius: 6px; cursor: pointer;
+    margin: 0 0 6px;
+  }
+  .bg-toggle input { cursor: pointer; }
   .file-pick {
-    border: 2px dashed #3a4080; border-radius: 8px; padding: 10px;
+    border: 2px dashed #3a4080; border-radius: 8px; padding: 16px 10px;
     text-align: center; cursor: pointer; background: rgba(0,0,0,.2);
     transition: border-color .15s;
+    min-height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
   }
   .file-pick:hover { border-color: var(--accent); }
-  .file-pick.has { border-style: solid; padding: 4px; }
-  .file-pick .preview { max-width: 100%; max-height: 180px; border-radius: 6px; display: block; margin: 0 auto; }
+  .file-pick.has { border-style: solid; padding: 6px; }
+  .file-pick .preview { max-width: 100%; max-height: 240px; border-radius: 6px; display: block; margin: 0 auto; }
   .file-pick input { display: none; }
-  .submit-bar { display: flex; gap: 8px; margin-top: 14px; position: sticky; bottom: 0; padding: 8px 0; background: linear-gradient(0deg, var(--panel) 60%, transparent); }
-  .submit-bar .btn { flex: 1; padding: 10px; font-size: 14px; }
+  .wizard-footer {
+    display: flex; gap: 8px; padding-top: 10px; margin-top: 8px;
+    border-top: 1px solid #3a4080;
+  }
+  .wizard-footer .btn { flex: 1; padding: 10px; font-size: 14px; }
+
+  /* Preview (page 3) */
+  .preview-grid { display: grid; grid-template-columns: 280px 1fr; gap: 22px; align-items: start; }
+  .preview-img {
+    background: rgba(0,0,0,.3); border: 1px solid #3a4080;
+    border-radius: 10px; aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .preview-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .preview-img .ph { color: var(--dim); font-size: 13px; }
+  .preview-info { display: flex; flex-direction: column; gap: 8px; }
+  .preview-info h3 { color: var(--accent); margin: 0; font-size: 22px; }
+  .preview-row {
+    display: flex; gap: 10px; font-size: 13px;
+    padding: 6px 12px; background: rgba(0,0,0,.25);
+    border: 1px solid #2a3060; border-radius: 6px;
+  }
+  .preview-row .k { color: var(--dim); min-width: 70px; }
+  .preview-row .v { color: var(--text); }
+  .preview-edits { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .preview-edits .btn { font-size: 12px; padding: 6px 12px; }
 
   /* ========== Battle ========== */
   #scene-battle { display: flex; flex-direction: column; }
+  .battle-wrap { position: relative; flex: 1; overflow: hidden; }
   .battle-stage {
-    flex: 1;
-    position: relative;
+    position: absolute; inset: 0;
     overflow: hidden;
     background: #0a0a14 center/cover no-repeat;
   }
@@ -306,19 +359,17 @@
   }
   .battle-bg-img::after {
     content: ""; position: absolute; inset: 0;
-    background:
-      linear-gradient(180deg, rgba(0,0,0,.25) 0%, transparent 40%, rgba(0,0,0,.3) 100%);
+    background: transparent;
   }
   .char-slot {
     position: absolute;
-    bottom: 4%;
-    width: 36%;
-    height: 88%;
+    bottom: 30%;
+    width: 30%;
+    height: 65%;
     display: flex; align-items: flex-end; justify-content: center;
-    z-index: 2;
   }
-  .char-slot.ally { left: 2%; }
-  .char-slot.enemy { right: 2%; }
+  .char-slot.ally { left: 11%; }
+  .char-slot.enemy { right: 11%; }
   .char-sprite {
     width: 100%;
     height: 100%;
@@ -327,7 +378,7 @@
     animation: bob 3s ease-in-out infinite;
     transition: filter .2s;
   }
-  .char-sprite img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+  .char-sprite img { width: calc(100% * var(--char-size, 1)); height: calc(100% * var(--char-size, 1)); object-fit: contain; object-position: center bottom; display: block; }
   .char-sprite.no-img { font-size: 140px; line-height: 1; }
   @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
   .char-sprite.hurt { animation: hurt .4s; }
@@ -344,64 +395,78 @@
     100% { opacity: 0; transform: scale(.3) rotate(180deg) translateY(60px); filter: blur(8px); }
   }
 
-  /* Speech bubble */
+  /* Speech bubble (漫画風) */
   .bubble {
     position: absolute;
-    bottom: 70%;
+    bottom: 75%;
     background: #fff;
-    color: #222;
-    padding: 8px 14px;
-    border-radius: 14px;
-    font-size: 13px; font-weight: bold;
-    max-width: 70%;
+    color: #111;
+    padding: 10px 18px;
+    border: 3px solid #111;
+    border-radius: 22px;
+    font-size: clamp(13px, 1.4vw, 18px);
+    font-weight: bold;
+    min-width: 80px;
+    max-width: 130%;
     white-space: pre-wrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,.5);
-    z-index: 3;
+    box-shadow: 4px 4px 0 rgba(0,0,0,.45);
+    z-index: 50;
     opacity: 0;
-    transform: translateY(8px) scale(.85);
     transition: opacity .2s, transform .2s;
     pointer-events: none;
-    line-height: 1.4;
+    line-height: 1.3;
+    font-family: "Comic Sans MS", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
   }
-  .bubble.show { opacity: 1; transform: translateY(0) scale(1); }
+  .bubble.show { opacity: 1; }
+  /* しっぽ (黒縁) */
+  .bubble::before {
+    content: ""; position: absolute;
+    bottom: -16px; width: 0; height: 0;
+    border: 10px solid transparent;
+    border-top-color: #111;
+  }
+  /* しっぽ (白塗り) */
   .bubble::after {
     content: ""; position: absolute;
     bottom: -10px; width: 0; height: 0;
-    border: 8px solid transparent;
+    border: 7px solid transparent;
     border-top-color: #fff;
   }
-  .char-slot.ally .bubble { left: 50%; transform: translateX(-50%) translateY(8px) scale(.85); }
-  .char-slot.ally .bubble.show { transform: translateX(-50%) translateY(0) scale(1); }
-  .char-slot.ally .bubble::after { left: 30%; }
-  .char-slot.enemy .bubble { right: 50%; transform: translateX(50%) translateY(8px) scale(.85); }
-  .char-slot.enemy .bubble.show { transform: translateX(50%) translateY(0) scale(1); }
-  .char-slot.enemy .bubble::after { right: 30%; left: auto; }
+  .char-slot.ally .bubble {
+    left: 60%; transform: translateX(-30%) translateY(8px) scale(.85);
+  }
+  .char-slot.ally .bubble.show { transform: translateX(-30%) translateY(0) scale(1); }
+  .char-slot.ally .bubble::before { left: 22%; }
+  .char-slot.ally .bubble::after { left: calc(22% + 3px); }
+  .char-slot.enemy .bubble {
+    right: 60%; transform: translateX(30%) translateY(8px) scale(.85);
+  }
+  .char-slot.enemy .bubble.show { transform: translateX(30%) translateY(0) scale(1); }
+  .char-slot.enemy .bubble::before { right: 22%; }
+  .char-slot.enemy .bubble::after { right: calc(22% + 3px); }
 
   /* HUD - HP/MP top corners */
   .hud {
     position: absolute;
-    top: 12px;
-    background: rgba(0,0,0,.55);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,.15);
-    padding: 6px 10px;
-    border-radius: 8px;
+    top: 14px;
+    padding: 6px 14px;
     z-index: 5;
-    min-width: 180px;
+    min-width: clamp(280px, 30vw, 420px);
+    text-shadow: 1px 1px 0 #000, 0 0 6px rgba(0,0,0,.9);
   }
-  .hud.ally { left: 12px; }
-  .hud.enemy { right: 12px; text-align: right; }
-  .hud .nm { font-size: 12px; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hud.ally { left: 14px; }
+  .hud.enemy { right: 14px; text-align: right; }
+  .hud .nm { font-size: clamp(15px, 1.7vw, 20px); font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hud.ally .nm { color: var(--ally); }
   .hud.enemy .nm { color: var(--accent2); }
-  .bar-row { display: flex; align-items: center; gap: 6px; font-size: 10px; margin: 2px 0; }
-  .bar-row .lbl { color: var(--dim); width: 18px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; font-size: clamp(11px, 1.2vw, 14px); margin: 4px 0; font-weight: bold; }
+  .bar-row .lbl { color: var(--dim); width: 24px; }
   .hud.enemy .bar-row { flex-direction: row-reverse; }
   .bar {
-    flex: 1; height: 8px;
+    flex: 1; height: clamp(8px, 1.0vw, 11px);
     background: #0a0a18;
     border: 1px solid #3a4080;
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
     position: relative;
   }
@@ -409,28 +474,38 @@
   .bar.hp > .fill { background: linear-gradient(180deg, var(--hp), #2a9050); }
   .bar.hp.low > .fill { background: linear-gradient(180deg, var(--hp-low), #802020); }
   .bar.mp > .fill { background: linear-gradient(180deg, var(--mp), #2070b0); }
-  .bar .num { color: var(--text); font-size: 10px; min-width: 56px; text-align: center; text-shadow: 0 0 4px #000; }
+  .bar.tp > .fill { background: linear-gradient(180deg, var(--accent), #b8860b); }
+  .bar .num { color: var(--text); font-size: clamp(11px, 1.2vw, 14px); min-width: 70px; text-align: center; text-shadow: 0 0 4px #000; font-weight: bold; }
   .hud.enemy .bar .num { text-align: center; }
 
-  /* Battle bottom panel */
-  .battle-panel {
-    background: rgba(10,12,24,.95);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255,255,255,.08);
-    padding: 6px 12px;
-    flex-shrink: 0;
-    height: 28%;
-    display: flex; flex-direction: column; gap: 6px;
+  /* Battle UI overlay (背景の上に重なる) */
+  .battle-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 10;
+    display: flex; flex-direction: column;
+    pointer-events: none;
   }
+  .battle-overlay > * { pointer-events: auto; }
   .log {
-    background: rgba(0,0,0,.45);
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 12px; line-height: 1.45;
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
+    margin: 0 16px 8px;
+    background: rgba(0,0,0,.72);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: clamp(16px, 1.8vw, 22px);
+    font-weight: bold;
+    line-height: 1.3;
+    height: clamp(40px, 5.5vw, 60px);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: flex; align-items: center;
+    color: var(--text);
+  }
+  .cmds-area {
+    padding: 10px 24px;
   }
   .log .line { margin: 0; }
   .log .line.dmg { color: #ff9090; }
@@ -438,20 +513,14 @@
   .log .line.crit { color: var(--accent); font-weight: bold; }
   .log .line.sys { color: var(--dim); font-style: italic; }
   .cmds {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: clamp(14px, 3.5vw, 50px);
   }
-  .cmds .btn {
-    padding: 10px 4px;
-    font-size: 13px;
-    background: linear-gradient(180deg, rgba(40,46,90,.9), rgba(20,24,50,.9));
-    border: 1px solid #4a52a0;
-  }
-  .cmds .btn[data-cmd="attack"] { color: #fff; }
-  .cmds .btn[data-cmd="magic"] { background: linear-gradient(180deg, rgba(60,40,120,.9), rgba(30,20,80,.9)); border-color: #8a60ff; }
-  .cmds .btn[data-cmd="guard"] { background: linear-gradient(180deg, rgba(40,80,60,.9), rgba(20,50,30,.9)); border-color: #60c080; }
-  .cmds .btn[data-cmd="run"] { background: linear-gradient(180deg, rgba(80,40,60,.9), rgba(50,20,30,.9)); border-color: #c06080; }
+  .cmd-btn { width: clamp(80px, 12vw, 140px); aspect-ratio: 1; }
+  .cmd-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .cmd-btn:disabled:hover { transform: none; filter: drop-shadow(0 4px 12px rgba(0,0,0,.6)); }
 
   /* Damage popup */
   .dmg-pop {
@@ -542,18 +611,24 @@
     <section class="scene active" id="scene-title">
       <div class="title-bg" id="titleBg"></div>
       <div class="title-content">
-        <div class="logo">ギュラ鯖<small>RPG</small></div>
-        <div class="title-cover">
-          <img id="coverImg" src="images/slime.jpg" alt="">
-        </div>
-        <div class="title-actions">
-          <input id="playerName" class="title-name" maxlength="12" placeholder="あなたの名前 (任意)">
-          <button class="btn huge" data-menu="pickAlly">⚔ 対戦</button>
-          <div class="title-menu-row">
-            <button class="btn" data-menu="submit">📷 画像を投稿</button>
-            <button class="btn" data-menu="gallery">📚 みんなの画像を見る</button>
-            <button class="btn" data-menu="settings">⚙️ 設定</button>
-          </div>
+        <input id="playerName" class="title-name" maxlength="12" placeholder="あなたの名前 (任意)">
+        <button class="img-btn btn-battle" data-menu="pickAlly">
+          <img src="images/ui/battle_normal.png" class="state-normal" alt="対戦">
+          <img src="images/ui/battle_pressed.png" class="state-pressed" alt="">
+        </button>
+        <div class="title-sub">
+          <button class="img-btn btn-sub" data-menu="submit">
+            <img src="images/ui/submit_normal.png" class="state-normal" alt="画像投稿">
+            <img src="images/ui/submit_pressed.png" class="state-pressed" alt="">
+          </button>
+          <button class="img-btn btn-sub" data-menu="gallery">
+            <img src="images/ui/gallery_normal.png" class="state-normal" alt="みんなの画像を見る">
+            <img src="images/ui/gallery_pressed.png" class="state-pressed" alt="">
+          </button>
+          <button class="img-btn btn-sub" data-menu="settings">
+            <img src="images/ui/settings_normal.png" class="state-normal" alt="設定">
+            <img src="images/ui/settings_pressed.png" class="state-pressed" alt="">
+          </button>
         </div>
       </div>
     </section>
@@ -562,94 +637,176 @@
     <section class="scene" id="scene-picker">
       <div class="picker-head">
         <h2 id="pickerTitle">キャラを選ぶ</h2>
-        <div class="filter">
-          <button data-filter="ally" class="on">⚔️ 仲間</button>
-          <button data-filter="enemy">👹 敵</button>
-          <button data-filter="all">全部</button>
-        </div>
       </div>
       <div id="pickerHint" class="picker-hint"></div>
       <div class="grid" id="grid"></div>
     </section>
 
-    <!-- Submit -->
+    <!-- Submit Wizard -->
     <section class="scene" id="scene-submit">
-      <div class="form-wrap">
-        <h2>📷 キャラを投稿</h2>
-        <div class="field">
-          <label>役割 <span class="req">*</span></label>
-          <div class="role-toggle">
-            <input type="radio" name="role" id="role-ally" value="ally" checked>
-            <label for="role-ally">⚔️ 仲間</label>
-            <input type="radio" name="role" id="role-enemy" value="enemy">
-            <label for="role-enemy">👹 敵</label>
-          </div>
+      <div class="wizard">
+        <div class="wizard-header">
+          <h2>📷 キャラを投稿</h2>
+          <span class="page-indicator" id="pageIndicator">1 / 3</span>
         </div>
-        <div class="row2">
-          <div class="field">
-            <label>名前 <span class="req">*</span></label>
-            <input id="fName" class="text-input" maxlength="20" placeholder="例：勇者ロト">
+        <div class="wizard-body">
+
+          <!-- Page 1: 画像・名前・サイズ・セリフ -->
+          <div class="wizard-page active" data-page="1">
+            <div class="page-layout">
+              <div class="page-col">
+                <h3>📷 画像</h3>
+                <label class="bg-toggle">
+                  <input type="checkbox" id="fBgRemove" checked>
+                  ✂️ 背景を自動で透明化（白っぽい背景はキレイに消えます）
+                </label>
+                <div class="file-pick" id="filePick">
+                  <input type="file" id="fImage" accept="image/*">
+                  <div id="filePickInner">📷 タップして画像を選ぶ</div>
+                </div>
+              </div>
+              <div class="page-col">
+                <h3>👤 基本情報</h3>
+                <div class="field">
+                  <label>名前 <span class="req">*</span></label>
+                  <input id="fName" class="text-input" maxlength="20" placeholder="例：勇者ロト">
+                </div>
+                <div class="field">
+                  <label>サイズ <span style="color:var(--dim);font-size:11px;">(対戦画面での見た目)</span></label>
+                  <div class="role-toggle">
+                    <input type="radio" name="size" id="size-s" value="0.65">
+                    <label for="size-s">🐹 小</label>
+                    <input type="radio" name="size" id="size-m" value="1.0" checked>
+                    <label for="size-m">👤 中</label>
+                    <input type="radio" name="size" id="size-l" value="1.35">
+                    <label for="size-l">🐲 大</label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>決めゼリフ <span style="color:var(--dim);font-size:11px;">(攻撃時に吹き出し表示・任意)</span></label>
+                  <input id="fTaunt" class="text-input" maxlength="50" placeholder="例：くらえ！必殺レス！">
+                </div>
+                <div class="field">
+                  <label>投稿者名（任意）</label>
+                  <input id="fSubmitter" class="text-input" maxlength="20" placeholder="例：かいてん">
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label>投稿者名（任意）</label>
-            <input id="fSubmitter" class="text-input" maxlength="20" placeholder="例：かいてん">
+
+          <!-- Page 2: ステータス・とくぎ -->
+          <div class="wizard-page" data-page="2">
+            <div class="page-layout">
+              <div class="page-col">
+                <h3>💪 ステータス</h3>
+                <div class="field">
+                  <label>HP <span class="req">*</span> <span style="color:var(--dim);font-size:11px;">(推奨 50〜200)</span></label>
+                  <input id="fHP" class="num-input" type="number" min="1" max="9999" placeholder="100">
+                </div>
+                <div class="field">
+                  <label>攻撃 <span class="req">*</span> <span style="color:var(--dim);font-size:11px;">(推奨 5〜20)</span></label>
+                  <input id="fAtk" class="num-input" type="number" min="1" max="999" placeholder="10">
+                </div>
+                <div class="field">
+                  <label>防御 <span style="color:var(--dim);font-size:11px;">(推奨 0〜10)</span></label>
+                  <input id="fDef" class="num-input" type="number" min="0" max="999" placeholder="3">
+                </div>
+              </div>
+              <div class="page-col">
+                <h3>✨ とくぎ <span style="color:var(--dim);font-size:11px;font-weight:normal;">(まほうボタンで発動・任意)</span></h3>
+                <div class="field">
+                  <label>技の名前</label>
+                  <input id="fTechName" class="text-input" maxlength="20" placeholder="例：アクセラレーション">
+                </div>
+                <div class="field">
+                  <label>種類</label>
+                  <div class="role-toggle">
+                    <input type="radio" name="techType" id="tech-atk" value="attack" checked>
+                    <label for="tech-atk">⚔ 攻撃</label>
+                    <input type="radio" name="techType" id="tech-heal" value="heal">
+                    <label for="tech-heal">💚 回復</label>
+                  </div>
+                </div>
+                <div class="row2">
+                  <div class="field">
+                    <label>消費MP</label>
+                    <input id="fTechCost" class="num-input" type="number" min="0" max="20" value="3">
+                  </div>
+                  <div class="field">
+                    <label>威力倍率</label>
+                    <input id="fTechPower" class="num-input" type="number" step="0.1" min="0.5" max="10" value="2.0">
+                  </div>
+                </div>
+                <div style="font-size:11px;color:var(--dim);background:rgba(0,0,0,.25);padding:8px 10px;border-radius:6px;line-height:1.5;">
+                  攻撃の場合：攻撃力 × 倍率 のダメージ<br>
+                  回復の場合：HP最大値 × 倍率×0.15 を回復<br>
+                  ※何も入れなくてもOK（デフォルトの「まほう」が使われる）
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="field">
-          <label>ステータス <span class="req">*</span> <span style="color:var(--dim);">(HP/攻撃/防御)</span></label>
-          <div class="row3">
-            <input id="fHP" class="num-input" type="number" min="1" max="9999" placeholder="HP 50-200">
-            <input id="fAtk" class="num-input" type="number" min="1" max="999" placeholder="攻撃 5-20">
-            <input id="fDef" class="num-input" type="number" min="0" max="999" placeholder="防御 0-10">
+
+          <!-- Page 3: プレビュー -->
+          <div class="wizard-page" data-page="3">
+            <div id="previewArea"></div>
           </div>
+
         </div>
-        <div class="field">
-          <label>セリフ（任意・攻撃時に吹き出しで表示）</label>
-          <input id="fTaunt" class="text-input" maxlength="50" placeholder="例：くらえ！">
-        </div>
-        <div class="field">
-          <label>画像（任意・PNG/JPG・透過推奨）</label>
-          <div class="file-pick" id="filePick">
-            <input type="file" id="fImage" accept="image/*">
-            <div id="filePickInner">📷 タップして画像を選ぶ</div>
-          </div>
-        </div>
-        <div class="submit-bar">
-          <button class="btn" data-menu="title">キャンセル</button>
-          <button class="btn primary" id="btnSubmit">投稿する</button>
+        <div class="wizard-footer">
+          <button class="btn" id="btnWCancel">キャンセル</button>
+          <button class="btn" id="btnWBack" style="display:none;">← 戻る</button>
+          <button class="btn primary" id="btnWNext">次へ →</button>
+          <button class="btn primary" id="btnWSubmit" style="display:none;">📤 投稿する</button>
         </div>
       </div>
     </section>
 
     <!-- Battle -->
     <section class="scene" id="scene-battle">
-      <div class="battle-stage" id="battleStage">
-        <div class="battle-bg-img" id="battleBg"></div>
-        <div class="hud ally" id="hudAlly">
-          <div class="nm" id="allyNm">仲間</div>
-          <div class="bar-row"><span class="lbl">HP</span><div class="bar hp" id="allyHpBar"><div class="fill" id="allyHpFill"></div></div><span class="num" id="allyHpTxt">0/0</span></div>
-          <div class="bar-row"><span class="lbl">MP</span><div class="bar mp" id="allyMpBar"><div class="fill" id="allyMpFill"></div></div><span class="num" id="allyMpTxt">0/0</span></div>
+      <div class="battle-wrap">
+        <div class="battle-stage" id="battleStage">
+          <div class="battle-bg-img" id="battleBg"></div>
+          <div class="hud ally" id="hudAlly">
+            <div class="nm" id="allyNm">仲間</div>
+            <div class="bar-row"><span class="lbl">HP</span><div class="bar hp" id="allyHpBar"><div class="fill" id="allyHpFill"></div></div><span class="num" id="allyHpTxt">0/0</span></div>
+            <div class="bar-row"><span class="lbl">MP</span><div class="bar mp" id="allyMpBar"><div class="fill" id="allyMpFill"></div></div><span class="num" id="allyMpTxt">0/0</span></div>
+            <div class="bar-row"><span class="lbl">TP</span><div class="bar tp" id="allyTpBar"><div class="fill" id="allyTpFill"></div></div><span class="num" id="allyTpTxt">0/100</span></div>
+          </div>
+          <div class="hud enemy" id="hudEnemy">
+            <div class="nm" id="enemyNm">敵</div>
+            <div class="bar-row"><span class="num" id="enemyHpTxt">0/0</span><div class="bar hp" id="enemyHpBar"><div class="fill" id="enemyHpFill"></div></div><span class="lbl">HP</span></div>
+          </div>
+          <div class="char-slot ally">
+            <div class="char-sprite" id="allySprite"></div>
+            <div class="bubble" id="allyBubble"></div>
+          </div>
+          <div class="char-slot enemy">
+            <div class="char-sprite" id="enemySprite"></div>
+            <div class="bubble" id="enemyBubble"></div>
+          </div>
         </div>
-        <div class="hud enemy" id="hudEnemy">
-          <div class="nm" id="enemyNm">敵</div>
-          <div class="bar-row"><span class="num" id="enemyHpTxt">0/0</span><div class="bar hp" id="enemyHpBar"><div class="fill" id="enemyHpFill"></div></div><span class="lbl">HP</span></div>
-        </div>
-        <div class="char-slot ally">
-          <div class="char-sprite" id="allySprite"></div>
-          <div class="bubble" id="allyBubble"></div>
-        </div>
-        <div class="char-slot enemy">
-          <div class="char-sprite" id="enemySprite"></div>
-          <div class="bubble" id="enemyBubble"></div>
-        </div>
-      </div>
-      <div class="battle-panel">
-        <div class="log" id="log"></div>
-        <div class="cmds">
-          <button class="btn" data-cmd="attack">⚔️ こうげき</button>
-          <button class="btn" data-cmd="magic">✨ まほう</button>
-          <button class="btn" data-cmd="guard">🛡️ ぼうぎょ</button>
-          <button class="btn" data-cmd="run">🏃 にげる</button>
+        <div class="battle-overlay">
+          <div class="log" id="log"></div>
+          <div class="cmds-area">
+            <div class="cmds">
+              <button class="img-btn cmd-btn" data-cmd="attack">
+                <img src="images/cmd/attack_normal.png" class="state-normal" alt="こうげき">
+                <img src="images/cmd/attack_pressed.png" class="state-pressed" alt="">
+              </button>
+              <button class="img-btn cmd-btn" data-cmd="magic">
+                <img src="images/cmd/magic_normal.png" class="state-normal" alt="まほう">
+                <img src="images/cmd/magic_pressed.png" class="state-pressed" alt="">
+              </button>
+              <button class="img-btn cmd-btn" data-cmd="tokugi">
+                <img src="images/cmd/tokugi_normal.png" class="state-normal" alt="とくぎ">
+                <img src="images/cmd/tokugi_pressed.png" class="state-pressed" alt="">
+              </button>
+              <button class="img-btn cmd-btn" data-cmd="run">
+                <img src="images/cmd/run_normal.png" class="state-normal" alt="にげる">
+                <img src="images/cmd/run_pressed.png" class="state-pressed" alt="">
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -681,8 +838,8 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 //================= 既定キャラ（DBが空でも遊べる用）=================
 const DEFAULTS = [
-  { role:'ally', name:'ふつうの勇者', hp:80, atk:10, def:3, taunt:'いくぞ！', image_url:null, submitter:'(プリセット)' },
-  { role:'enemy', name:'チャットスライム', hp:40, atk:6, def:0, taunt:'ﾌﾞﾙﾙ…', image_url:null, submitter:'(プリセット)' },
+  { role:'ally', name:'ふつうの勇者', hp:80, atk:10, def:3, taunt:'いくぞ！', image_url:null, submitter:'(プリセット)', size_scale:1.0, techs:[] },
+  { role:'enemy', name:'チャットスライム', hp:40, atk:6, def:0, taunt:'ﾌﾞﾙﾙ…', image_url:null, submitter:'(プリセット)', size_scale:1.0, techs:[] },
 ];
 
 //================= 背景 =================
@@ -694,10 +851,12 @@ const G = {
   myChar: null, oppChar: null,
   characters: [], loaded: false,
   pHP:0, pHPMax:0, pMP:3, pMPMax:5,
+  pTP:0, pTPMax:100,
   eHP:0, eHPMax:0,
   totalDmg:0, turns:0, startTime:0,
   guarding:false,
-  pickerStage:null, pickerFilter:'ally',
+  pickerStage:null,
+  wizardPage:1,
 };
 
 //================= ユーティリティ =================
@@ -712,6 +871,8 @@ function show(id){
   $$('.scene').forEach(s=>s.classList.remove('active'));
   $('#scene-'+id).classList.add('active');
   $('#btnHome').style.display = (id === 'title') ? 'none' : 'flex';
+  // 戦闘・タイトル・投稿は全画面表示（ヘッダー隠す）
+  document.querySelector('header').style.display = (id === 'battle' || id === 'title' || id === 'submit') ? 'none' : 'flex';
 }
 function toast(msg, isErr){
   const t = $('#toast');
@@ -736,13 +897,150 @@ async function loadCharacters(){
 }
 async function uploadImage(file){
   if (!file) return null;
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const safe = /^(jpe?g|png|gif|webp)$/.test(ext) ? ext : 'jpg';
-  const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.${safe}`;
-  const { error } = await sb.storage.from('characters').upload(path, file, { cacheControl: '3600', upsert: false });
+  const ext = (file.type === 'image/png') ? 'png' : 'jpg';
+  const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const { error } = await sb.storage.from('characters').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
   if (error) throw error;
   const { data } = sb.storage.from('characters').getPublicUrl(path);
   return data.publicUrl;
+}
+
+// 画像の枠から繋がってる背景色を塗りつぶし方式で透明化＋自動クロップ
+// （キャラ内部の白い目とか歯は消えない）
+async function removeBgAndCrop(file){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const w = img.naturalWidth, h = img.naturalHeight;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const d = imgData.data;
+        // 背景色を四隅・各辺中央からサンプリング
+        const get = (x,y) => { const i = (y*w+x)*4; return [d[i], d[i+1], d[i+2]]; };
+        const samples = [
+          get(0,0), get(w-1,0), get(0,h-1), get(w-1,h-1),
+          get(Math.floor(w/2),0), get(Math.floor(w/2),h-1),
+          get(0,Math.floor(h/2)), get(w-1,Math.floor(h/2)),
+        ];
+        const bg = [0,1,2].map(c => Math.round(samples.reduce((s,p)=>s+p[c],0)/samples.length));
+        const tol = 32, soft = 60;
+        const pixelDist = (px, py) => {
+          const i = (py*w+px)*4;
+          return Math.sqrt((d[i]-bg[0])**2 + (d[i+1]-bg[1])**2 + (d[i+2]-bg[2])**2);
+        };
+        // flood-fill：枠の背景ピクセルから塗りつぶし（スタックでDFS）
+        const visited = new Uint8Array(w*h);
+        const stack = [];
+        const pushBorder = (x, y) => {
+          if (pixelDist(x, y) < tol) {
+            const pos = y * w + x;
+            if (!visited[pos]) { stack.push(pos); visited[pos] = 1; }
+          }
+        };
+        for (let x = 0; x < w; x++) { pushBorder(x, 0); pushBorder(x, h-1); }
+        for (let y = 0; y < h; y++) { pushBorder(0, y); pushBorder(w-1, y); }
+        while (stack.length > 0) {
+          const pos = stack.pop();
+          const x = pos % w;
+          const y = (pos - x) / w;
+          const dist = pixelDist(x, y);
+          const i = pos * 4;
+          if (dist < tol) {
+            d[i+3] = 0;
+          } else {
+            d[i+3] = Math.round(((dist - tol) / (soft - tol)) * 255);
+            continue; // soft帯のフチは透明にせず先進めない
+          }
+          // 4近傍
+          if (x > 0) {
+            const np = pos - 1;
+            if (!visited[np] && pixelDist(x-1, y) < soft) { stack.push(np); visited[np] = 1; }
+          }
+          if (x < w-1) {
+            const np = pos + 1;
+            if (!visited[np] && pixelDist(x+1, y) < soft) { stack.push(np); visited[np] = 1; }
+          }
+          if (y > 0) {
+            const np = pos - w;
+            if (!visited[np] && pixelDist(x, y-1) < soft) { stack.push(np); visited[np] = 1; }
+          }
+          if (y < h-1) {
+            const np = pos + w;
+            if (!visited[np] && pixelDist(x, y+1) < soft) { stack.push(np); visited[np] = 1; }
+          }
+        }
+        // 自動クロップ：透明じゃないピクセルのbbox
+        let minX = w, minY = h, maxX = -1, maxY = -1;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const i = (y*w+x)*4;
+            if (d[i+3] > 60) {
+              if (x < minX) minX = x;
+              if (y < minY) minY = y;
+              if (x > maxX) maxX = x;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+        if (maxX < 0) throw new Error('キャラが検出できず');
+        ctx.putImageData(imgData, 0, 0);
+        const pad = 6;
+        const cx = Math.max(0, minX - pad);
+        const cy = Math.max(0, minY - pad);
+        const cw = Math.min(w - cx, maxX - minX + 1 + pad*2);
+        const ch = Math.min(h - cy, maxY - minY + 1 + pad*2);
+        const out = document.createElement('canvas');
+        out.width = cw; out.height = ch;
+        out.getContext('2d').drawImage(canvas, cx, cy, cw, ch, 0, 0, cw, ch);
+        out.toBlob(blob => {
+          URL.revokeObjectURL(img.src);
+          if (!blob) return reject(new Error('変換失敗'));
+          const newName = file.name.replace(/\.[^.]+$/, '') + '_cut.png';
+          resolve(new File([blob], newName, { type: 'image/png' }));
+        }, 'image/png');
+      } catch (err) { URL.revokeObjectURL(img.src); reject(err); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error('画像読み込みエラー')); };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// 画像リサイズ（透過PNGはPNG維持、それ以外はJPEG化）
+async function resizeImage(file, maxDim = 1024, quality = 0.85){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      const longSide = Math.max(width, height);
+      if (longSide <= maxDim && file.size <= 500_000) {
+        URL.revokeObjectURL(img.src);
+        return resolve(file);
+      }
+      if (longSide > maxDim) {
+        const scale = maxDim / longSide;
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+      const outType = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+      const newName = file.name.replace(/\.[^.]+$/, '') + (outType === 'image/png' ? '.png' : '.jpg');
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(img.src);
+        if (!blob) return reject(new Error('Canvas変換に失敗'));
+        resolve(new File([blob], newName, { type: outType, lastModified: Date.now() }));
+      }, outType, quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error('画像の読み込みに失敗')); };
+    img.src = URL.createObjectURL(file);
+  });
 }
 async function submitCharacter(data){
   const { error } = await sb.from('characters').insert(data);
@@ -769,21 +1067,19 @@ function goTitle(){
   show('title');
 }
 
-//================= ピッカー =================
+//================= ピッカー（役割区別なし）=================
 async function goPicker(stage){
   G.pickerStage = stage;
-  G.pickerFilter = stage === 'enemy' ? 'enemy' : (stage === 'browse' ? 'all' : 'ally');
   if (stage === 'ally') {
-    $('#pickerTitle').textContent = '① あなたのキャラを選ぶ';
-    $('#pickerHint').innerHTML = '<span style="color:var(--ally);">仲間</span>を選んで戦闘準備';
+    $('#pickerTitle').textContent = '① 自分のキャラを選ぶ';
+    $('#pickerHint').innerHTML = '誰でも選べます';
   } else if (stage === 'enemy') {
     $('#pickerTitle').textContent = `② 相手を選ぶ (自分: ${esc(G.myChar.name)})`;
-    $('#pickerHint').innerHTML = '<span style="color:var(--accent2);">敵</span>を選んで開始！';
+    $('#pickerHint').innerHTML = '誰でも選べます';
   } else {
     $('#pickerTitle').textContent = '📚 みんなの画像';
     $('#pickerHint').textContent = '（鑑賞モード）';
   }
-  $$('.filter button').forEach(b=>b.classList.toggle('on', b.dataset.filter === G.pickerFilter));
   show('picker');
   if (!G.loaded) {
     $('#grid').innerHTML = '<div class="empty"><div class="spinner"></div> 読み込み中…</div>';
@@ -791,28 +1087,17 @@ async function goPicker(stage){
   }
   renderGrid();
 }
-$$('.filter button').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    if (G.pickerStage === 'ally' || G.pickerStage === 'enemy') return;
-    G.pickerFilter = b.dataset.filter;
-    $$('.filter button').forEach(x=>x.classList.toggle('on', x.dataset.filter === G.pickerFilter));
-    renderGrid();
-  });
-});
 function renderGrid(){
   const grid = $('#grid');
-  let list = G.characters;
-  if (G.pickerStage === 'ally') list = list.filter(c=>c.role==='ally');
-  else if (G.pickerStage === 'enemy') list = list.filter(c=>c.role==='enemy');
-  else if (G.pickerFilter !== 'all') list = list.filter(c=>c.role===G.pickerFilter);
+  const list = G.characters; // 役割区別なし、全員から選べる
   if (list.length === 0) {
-    grid.innerHTML = `<div class="empty">まだキャラがいないみたい。<br><button class="btn" style="margin-top:10px;" data-menu="submit">📝 投稿してみる</button></div>`;
+    grid.innerHTML = `<div class="empty">まだキャラがいないみたい。<br><button class="btn" id="btnEmptySubmit" style="margin-top:10px;">📝 投稿してみる</button></div>`;
+    $('#btnEmptySubmit')?.addEventListener('click', goSubmit);
     return;
   }
   grid.innerHTML = list.map((c,i)=>`
-    <div class="card role-${c.role}" data-idx="${i}">
-      <div class="role-tag">${c.role==='enemy'?'敵':'仲間'}</div>
-      <div class="imgbox">${c.image_url ? `<img src="${esc(c.image_url)}" alt="" loading="lazy">` : '<span class="ph">'+(c.role==='enemy'?'👹':'⚔️')+'</span>'}</div>
+    <div class="card" data-idx="${i}">
+      <div class="imgbox">${c.image_url ? `<img src="${esc(c.image_url)}" alt="" loading="lazy">` : '<span class="ph">👤</span>'}</div>
       <div class="meta">
         <div class="nm">${esc(c.name)}</div>
         <div class="st">HP${c.hp} ⚔${c.atk} 🛡${c.def||0}</div>
@@ -831,63 +1116,177 @@ function onPickCharacter(c){
   if (G.pickerStage === 'ally') { G.myChar = c; goPicker('enemy'); }
   else if (G.pickerStage === 'enemy') { G.oppChar = c; startBattle(); }
   else {
-    if (confirm(`「${c.name}」と戦う？\n（${c.role==='enemy'?'相手':'仲間'}としてセット）`)) {
-      if (c.role === 'ally') { G.myChar = c; goPicker('enemy'); }
-      else { G.oppChar = c; goPicker('ally'); }
-    }
+    if (confirm(`「${c.name}」を自分のキャラとして使う？`)) { G.myChar = c; goPicker('enemy'); }
   }
 }
 
-//================= 投稿 =================
+//================= 投稿（3ページウィザード）=================
+let pickedFile = null;
+
 function goSubmit(){
   show('submit');
   $('#fName').value = ''; $('#fHP').value=''; $('#fAtk').value=''; $('#fDef').value='';
   $('#fTaunt').value=''; $('#fImage').value=''; $('#fSubmitter').value = G.playerName || '';
+  $('#fTechName').value=''; $('#fTechCost').value='3'; $('#fTechPower').value='2.0';
   $('#filePickInner').innerHTML = '📷 タップして画像を選ぶ';
   $('#filePick').classList.remove('has');
-  $('#role-ally').checked = true;
+  $('#size-m').checked = true;
+  $('#tech-atk').checked = true;
+  $('#fBgRemove').checked = true;
+  pickedFile = null;
+  gotoWizardPage(1);
 }
-$('#filePick').addEventListener('click', e=>{ if (e.target.tagName !== 'INPUT') $('#fImage').click(); });
-$('#fImage').addEventListener('change', e=>{
-  const f = e.target.files[0]; if (!f) return;
-  if (f.size > 8 * 1024 * 1024) { toast('8MB以下にしてください', true); $('#fImage').value=''; return; }
-  const r = new FileReader();
-  r.onload = ev => {
-    $('#filePickInner').innerHTML = `<img src="${ev.target.result}" class="preview"><div style="font-size:11px;color:var(--dim);margin-top:4px;">タップで変更</div>`;
-    $('#filePick').classList.add('has');
-  };
-  r.readAsDataURL(f);
-});
-$('#btnSubmit').addEventListener('click', async ()=>{
-  const role = document.querySelector('input[name="role"]:checked').value;
+function gotoWizardPage(n){
+  G.wizardPage = n;
+  $$('.wizard-page').forEach(p => p.classList.toggle('active', +p.dataset.page === n));
+  $('#pageIndicator').textContent = `${n} / 3`;
+  $('#btnWBack').style.display = n > 1 ? 'block' : 'none';
+  $('#btnWCancel').style.display = n === 1 ? 'block' : 'none';
+  $('#btnWNext').style.display = n < 3 ? 'block' : 'none';
+  $('#btnWSubmit').style.display = n === 3 ? 'block' : 'none';
+  if (n === 3) renderPreview();
+}
+function validatePage(n){
+  if (n === 1) {
+    if (!$('#fName').value.trim()) { toast('名前は必須', true); return false; }
+    return true;
+  }
+  if (n === 2) {
+    const hp = parseInt($('#fHP').value, 10);
+    const atk = parseInt($('#fAtk').value, 10);
+    const def = parseInt($('#fDef').value, 10) || 0;
+    if (!(hp >= 1 && hp <= 9999)) { toast('HPは1〜9999で入力', true); return false; }
+    if (!(atk >= 1 && atk <= 999)) { toast('攻撃は1〜999で入力', true); return false; }
+    if (def < 0 || def > 999) { toast('防御は0〜999', true); return false; }
+    return true;
+  }
+  return true;
+}
+function renderPreview(){
   const name = $('#fName').value.trim();
-  const hp = parseInt($('#fHP').value, 10);
-  const atk = parseInt($('#fAtk').value, 10);
-  const def = parseInt($('#fDef').value, 10) || 0;
+  const sizeVal = parseFloat(document.querySelector('input[name="size"]:checked').value);
+  const sizeLabel = sizeVal === 0.65 ? '🐹 小' : sizeVal === 1.35 ? '🐲 大' : '👤 中';
   const taunt = $('#fTaunt').value.trim();
-  const submitter = $('#fSubmitter').value.trim() || G.playerName || null;
-  const file = $('#fImage').files[0] || null;
-  if (!name) return toast('名前は必須', true);
-  if (!(hp >= 1 && hp <= 9999)) return toast('HPは1〜9999', true);
-  if (!(atk >= 1 && atk <= 999)) return toast('攻撃は1〜999', true);
-  if (!(def >= 0 && def <= 999)) return toast('防御は0〜999', true);
-  $('#btnSubmit').disabled = true;
-  $('#btnSubmit').innerHTML = '<span class="spinner"></span> 送信中…';
+  const submitter = $('#fSubmitter').value.trim();
+  const hp = parseInt($('#fHP').value) || 0;
+  const atk = parseInt($('#fAtk').value) || 0;
+  const def = parseInt($('#fDef').value) || 0;
+  const tName = $('#fTechName').value.trim();
+  const tType = document.querySelector('input[name="techType"]:checked').value;
+  const tCost = parseInt($('#fTechCost').value) || 3;
+  const tPower = parseFloat($('#fTechPower').value) || 2.0;
+  const imageSrc = pickedFile ? URL.createObjectURL(pickedFile) : '';
+  $('#previewArea').innerHTML = `
+    <div class="preview-grid">
+      <div class="preview-img">
+        ${imageSrc ? `<img src="${imageSrc}" alt="">` : '<div class="ph">画像なし</div>'}
+      </div>
+      <div class="preview-info">
+        <h3>${esc(name) || '(名前未入力)'}</h3>
+        <div class="preview-row"><span class="k">サイズ</span><span class="v">${sizeLabel}</span></div>
+        <div class="preview-row"><span class="k">HP</span><span class="v">${hp}</span></div>
+        <div class="preview-row"><span class="k">攻撃</span><span class="v">${atk}</span></div>
+        <div class="preview-row"><span class="k">防御</span><span class="v">${def}</span></div>
+        ${taunt ? `<div class="preview-row"><span class="k">決めゼリフ</span><span class="v">「${esc(taunt)}」</span></div>` : ''}
+        ${tName ? `<div class="preview-row"><span class="k">とくぎ</span><span class="v">${esc(tName)}（${tType === 'attack' ? '攻撃' : '回復'}・MP${tCost}・×${tPower}）</span></div>` : '<div class="preview-row"><span class="k">とくぎ</span><span class="v" style="color:var(--dim);">未設定（デフォルトのまほうが使われる）</span></div>'}
+        ${submitter ? `<div class="preview-row"><span class="k">投稿者</span><span class="v">${esc(submitter)}</span></div>` : ''}
+        <div class="preview-edits">
+          <button class="btn" id="btnEditP1">📝 1ページ目を編集</button>
+          <button class="btn" id="btnEditP2">📝 2ページ目を編集</button>
+        </div>
+      </div>
+    </div>
+  `;
+  $('#btnEditP1')?.addEventListener('click', () => gotoWizardPage(1));
+  $('#btnEditP2')?.addEventListener('click', () => gotoWizardPage(2));
+}
+async function doSubmit(){
+  if (!validatePage(1) || !validatePage(2)) return;
+  const data = {
+    role: 'ally',
+    name: $('#fName').value.trim(),
+    hp: parseInt($('#fHP').value, 10),
+    atk: parseInt($('#fAtk').value, 10),
+    def: parseInt($('#fDef').value, 10) || 0,
+    taunt: $('#fTaunt').value.trim() || null,
+    submitter: $('#fSubmitter').value.trim() || G.playerName || null,
+    size_scale: parseFloat(document.querySelector('input[name="size"]:checked').value),
+    techs: []
+  };
+  const tName = $('#fTechName').value.trim();
+  if (tName) {
+    data.techs.push({
+      name: tName,
+      type: document.querySelector('input[name="techType"]:checked').value,
+      cost: parseInt($('#fTechCost').value, 10) || 3,
+      power: parseFloat($('#fTechPower').value) || 2.0,
+    });
+  }
+  $('#btnWSubmit').disabled = true;
+  $('#btnWSubmit').innerHTML = '<span class="spinner"></span> 投稿中…';
   try {
-    let image_url = null;
-    if (file) image_url = await uploadImage(file);
-    await submitCharacter({ role, name, hp, atk, def, taunt: taunt||null, image_url, submitter });
+    if (pickedFile) data.image_url = await uploadImage(pickedFile);
+    await submitCharacter(data);
     toast('投稿しました！');
-    G.loaded = false; // 次のリストでリロード
-    setTimeout(()=>goTitle(), 700);
+    G.loaded = false;
+    setTimeout(() => goTitle(), 700);
   } catch (e) {
     console.error(e);
-    toast('投稿失敗：' + (e.message || e), true);
+    toast('投稿失敗: ' + (e.message || e), true);
   } finally {
-    $('#btnSubmit').disabled = false;
-    $('#btnSubmit').textContent = '投稿する';
+    $('#btnWSubmit').disabled = false;
+    $('#btnWSubmit').innerHTML = '📤 投稿する';
   }
+}
+$('#btnWCancel').addEventListener('click', goTitle);
+$('#btnWBack').addEventListener('click', () => gotoWizardPage(G.wizardPage - 1));
+$('#btnWNext').addEventListener('click', () => {
+  if (validatePage(G.wizardPage)) gotoWizardPage(G.wizardPage + 1);
 });
+$('#btnWSubmit').addEventListener('click', doSubmit);
+
+$('#filePick').addEventListener('click', e=>{ if (e.target.tagName !== 'INPUT') $('#fImage').click(); });
+async function processPickedFile(){
+  const inp = $('#fImage');
+  const f = inp.files[0]; if (!f) return;
+  if (f.size > 30 * 1024 * 1024) { toast('30MB超は無理ぃ…', true); inp.value=''; return; }
+  $('#filePickInner').innerHTML = '<div class="spinner"></div> 画像を処理中…';
+  try {
+    let result = await resizeImage(f, 1024, 0.85);
+    const stepLabels = [];
+    if (result !== f) stepLabels.push('縮小');
+    if ($('#fBgRemove').checked) {
+      try {
+        result = await removeBgAndCrop(result);
+        stepLabels.push('背景透過');
+      } catch (e) {
+        toast('背景透過 失敗：' + e.message, true);
+      }
+    }
+    pickedFile = result;
+    const r = new FileReader();
+    r.onload = ev => {
+      const origKB = Math.round(f.size / 1024);
+      const newKB = Math.round(pickedFile.size / 1024);
+      const note = stepLabels.length ? `${stepLabels.join('+')} ${origKB}KB→${newKB}KB` : `${newKB}KB`;
+      $('#filePickInner').innerHTML = `<img src="${ev.target.result}" class="preview"><div style="font-size:11px;color:var(--dim);margin-top:4px;">タップで変更 (${note})</div>`;
+      $('#filePick').classList.add('has');
+    };
+    r.readAsDataURL(pickedFile);
+  } catch (err) {
+    console.error(err);
+    toast('画像処理失敗: ' + err.message, true);
+    pickedFile = null;
+    $('#filePickInner').innerHTML = '📷 タップして画像を選ぶ';
+    $('#filePick').classList.remove('has');
+  }
+}
+$('#fImage').addEventListener('change', processPickedFile);
+$('#fBgRemove').addEventListener('change', ()=>{
+  // チェックボックスが変わった時、ファイルが選んであれば再処理
+  if ($('#fImage').files[0]) processPickedFile();
+});
+// （旧 #btnSubmit ハンドラはウィザード版 doSubmit() に置き換え済み）
 
 //================= バトル =================
 const FUNNY = {
@@ -905,6 +1304,7 @@ function startBattle(){
   G.pHPMax = me.hp; G.pHP = me.hp;
   G.eHPMax = opp.hp; G.eHP = opp.hp;
   G.pMP = 3; G.pMPMax = 5;
+  G.pTP = 0; G.pTPMax = 100;
   G.totalDmg = 0; G.turns = 0; G.startTime = Date.now();
   G.guarding = false;
   // BG random
@@ -915,8 +1315,10 @@ function startBattle(){
   $('#enemyNm').textContent = opp.name;
   $('#allySprite').className = 'char-sprite' + (me.image_url ? '' : ' no-img');
   $('#allySprite').innerHTML = me.image_url ? `<img src="${esc(me.image_url)}" alt="">` : '⚔️';
+  $('#allySprite').style.setProperty('--char-size', me.size_scale ?? 1);
   $('#enemySprite').className = 'char-sprite' + (opp.image_url ? '' : ' no-img');
   $('#enemySprite').innerHTML = opp.image_url ? `<img src="${esc(opp.image_url)}" alt="">` : '👹';
+  $('#enemySprite').style.setProperty('--char-size', opp.size_scale ?? 1);
   $('#log').innerHTML = '';
   refreshBars();
   log(`▼ ${opp.name} が あらわれた！`, 'sys');
@@ -937,19 +1339,24 @@ function refreshBars(){
   const mP = Math.max(0, G.pMP/G.pMPMax*100);
   $('#allyMpFill').style.width = mP+'%';
   $('#allyMpTxt').textContent = `${G.pMP}/${G.pMPMax}`;
+  const tP = Math.max(0, G.pTP/G.pTPMax*100);
+  $('#allyTpFill').style.width = tP+'%';
+  $('#allyTpTxt').textContent = `${G.pTP}/${G.pTPMax}`;
 }
 function enableCmds(on){
-  $$('.cmds .btn').forEach(b=>{
+  const tech = (G.myChar?.techs && G.myChar.techs[0]) || null;
+  const techCost = tech?.cost ?? 3;
+  $$('.cmds .cmd-btn').forEach(b=>{
     b.disabled = !on;
-    if (b.dataset.cmd === 'magic') b.disabled = !on || G.pMP < 3;
+    if (b.dataset.cmd === 'magic') b.disabled = !on || G.pMP < techCost;
+    if (b.dataset.cmd === 'tokugi') b.disabled = !on || G.pTP < 30;
   });
 }
 function log(text, cls=''){
-  const p = document.createElement('p');
-  p.className = 'line ' + cls;
-  p.textContent = text;
-  $('#log').appendChild(p);
-  $('#log').scrollTop = $('#log').scrollHeight;
+  // 1行のみ表示（最新だけ。古いのは消える）
+  const el = $('#log');
+  el.innerHTML = `<span class="line ${cls}"></span>`;
+  el.querySelector('.line').textContent = text;
 }
 function showBubble(side, text, ms=1800){
   const b = $('#' + side + 'Bubble');
@@ -972,7 +1379,7 @@ function popDmg(text, type='', side='enemy'){
   setTimeout(()=>el.remove(), 1000);
 }
 
-$$('.cmds .btn').forEach(b=> b.addEventListener('click', ()=>handleCmd(b.dataset.cmd)));
+$$('.cmds .cmd-btn').forEach(b=> b.addEventListener('click', ()=>handleCmd(b.dataset.cmd)));
 
 async function handleCmd(cmd){
   enableCmds(false);
@@ -999,20 +1406,35 @@ async function handleCmd(cmd){
     }
   }
   else if (cmd === 'magic') {
-    if (G.pMP < 3) { enableCmds(true); return; }
-    G.pMP -= 3;
-    showBubble('ally', '✨ まほうを とけ！');
-    const dmg = Math.max(1, Math.floor(me.atk * 2.2) - Math.floor((opp.def||0)/2) + rand(0,6));
+    // キャラ固有のとくぎ（無ければデフォルトのまほう）
+    const tech = (Array.isArray(me.techs) && me.techs[0]) || { name:'まほう', type:'attack', cost:3, power:2.2 };
+    if (G.pMP < tech.cost) { enableCmds(true); return; }
+    G.pMP -= tech.cost;
+    showBubble('ally', '✨ ' + tech.name + '！');
+    if (tech.type === 'heal') {
+      const heal = Math.min(G.pHPMax - G.pHP, Math.max(1, Math.floor(me.hp * tech.power * 0.15)));
+      G.pHP += heal;
+      popDmg('+'+heal, 'heal', 'ally');
+      log(`💚 ${me.name} の ${tech.name}！ HP ${heal} 回復！`, 'heal');
+    } else {
+      const dmg = Math.max(1, Math.floor(me.atk * tech.power) - Math.floor((opp.def||0)/2) + rand(0,6));
+      G.eHP -= dmg; G.totalDmg += dmg;
+      $('#enemySprite').classList.remove('hurt'); void $('#enemySprite').offsetWidth;
+      $('#enemySprite').classList.add('hurt');
+      popDmg(dmg, 'crit');
+      log(`✨ ${me.name} の ${tech.name}！ ${dmg} のダメージ！`, 'crit');
+    }
+  }
+  else if (cmd === 'tokugi') {
+    if (G.pTP < 30) { enableCmds(true); return; }
+    G.pTP -= 30;
+    showBubble('ally', '⚡ とくぎ！');
+    const dmg = Math.max(1, Math.floor(me.atk * 1.8) - Math.floor((opp.def||0)/2) + rand(2,6));
     G.eHP -= dmg; G.totalDmg += dmg;
+    $('#enemySprite').classList.remove('hurt'); void $('#enemySprite').offsetWidth;
     $('#enemySprite').classList.add('hurt');
     popDmg(dmg, 'crit');
-    log(`✨ ${me.name} の まほう！ ${dmg} のダメージ！`, 'crit');
-  }
-  else if (cmd === 'guard') {
-    G.guarding = true;
-    const heal = Math.min(G.pHPMax - G.pHP, rand(3,7));
-    if (heal > 0) { G.pHP += heal; popDmg('+'+heal, 'heal', 'ally'); }
-    log(fmt(pick(FUNNY.guard), ctx) + (heal? ` (HPが ${heal} 回復)`:''), 'heal');
+    log(`⚡ ${me.name} の とくぎ炸裂！ ${dmg} のダメージ！`, 'crit');
   }
   else if (cmd === 'run') {
     log('にげだした…', 'sys');
@@ -1050,6 +1472,8 @@ async function enemyTurn(){
   let dmg = Math.max(1, opp.atk - (me.def||0) + rand(-2,3));
   if (G.guarding) dmg = Math.max(0, Math.floor(dmg * 0.4));
   G.pHP -= dmg;
+  // ダメージを受けたらTP上昇
+  G.pTP = Math.min(G.pTPMax, G.pTP + rand(15, 25));
   popDmg(dmg, '', 'ally');
   $('#allySprite').classList.remove('hurt'); void $('#allySprite').offsetWidth;
   $('#allySprite').classList.add('hurt');
