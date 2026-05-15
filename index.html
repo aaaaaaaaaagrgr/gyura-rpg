@@ -900,6 +900,10 @@
               <h3>✨ 技を3つ登録</h3>
               <p>名前を空欄にすればスキップOK / 🔮MP技はまほうボタン、⚡TP技はとくぎボタンから発動</p>
             </div>
+            <div id="mpCapDisplay" style="background:rgba(91,182,255,.12);border:1px solid rgba(91,182,255,.4);border-radius:6px;padding:7px 12px;font-size:12px;margin-bottom:10px;color:var(--text);">
+              💡 あなたのMP最大値: <b id="mpCapValue" style="color:var(--mp);font-size:14px;">5</b>
+              <span style="color:var(--dim);">（MP技のコストはこれ以下にして、戦闘で使えるようにしよう）</span>
+            </div>
             <div class="tech-slots" id="techSlots"></div>
           </div>
 
@@ -1570,12 +1574,17 @@ function gotoWizardPage(n){
   G.wizardPage = n;
   $$('.wizard-page').forEach(p => p.classList.toggle('active', +p.dataset.page === n));
   $('#pageIndicator').textContent = `${n} / 5`;
-  // 1ページ目以外はウィザード上部のヘッダーを非表示にして縦幅を確保
   $('.wizard-header').style.display = n === 1 ? 'flex' : 'none';
   $('#btnWBack').style.display = n > 1 ? 'block' : 'none';
   $('#btnWCancel').style.display = n === 1 ? 'block' : 'none';
   $('#btnWNext').style.display = n < 5 ? 'block' : 'none';
   $('#btnWSubmit').style.display = n === 5 ? 'block' : 'none';
+  if (n === 4) {
+    // 技ページに来たら、現在選択中の型のMP最大値を表示
+    const archId = document.querySelector('input[name="archetype"]:checked')?.value || 'balancer';
+    const arch = ARCH_MAP[archId];
+    $('#mpCapValue').textContent = arch.mp;
+  }
   if (n === 5) renderPreview();
 }
 function validatePage(n){
@@ -1584,14 +1593,16 @@ function validatePage(n){
     return true;
   }
   if (n === 4) {
-    // 技コストの範囲チェック
+    const archId = document.querySelector('input[name="archetype"]:checked')?.value || 'balancer';
+    const mpCap = ARCH_MAP[archId].mp;
     for (let i = 1; i <= 3; i++) {
       const name = $(`[data-tech-field="name${i}"]`).value.trim();
       if (!name) continue;
       const resource = $(`[data-tech-field="resource${i}"]`).value;
       const cost = +$(`[data-tech-field="cost${i}"]`).value;
-      if (resource === 'mp' && (cost < 1 || cost > 10)) {
-        toast(`技${i}: MPコストは1〜10`, true); return false;
+      if (resource === 'mp') {
+        if (cost < 1 || cost > 10) { toast(`技${i}: MPコストは1〜10`, true); return false; }
+        if (cost > mpCap) { toast(`技${i}: MPコスト${cost}は あなたのMP上限${mpCap}を超えてる（使えなくなる）`, true); return false; }
       }
       if (resource === 'tp' && (cost < 10 || cost > 100)) {
         toast(`技${i}: TPコストは10〜100`, true); return false;
