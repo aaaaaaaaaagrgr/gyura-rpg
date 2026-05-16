@@ -85,6 +85,25 @@
   }
   header .home:hover { color: var(--accent); border-color: var(--accent); }
 
+  /* BGM mute button (fixed top-right corner of #game) */
+  #bgmToggle {
+    position: absolute;
+    top: 8px; right: 8px;
+    z-index: 50;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.15);
+    background: rgba(0,0,0,.5);
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    transition: transform .1s, border-color .15s;
+  }
+  #bgmToggle:hover { border-color: var(--accent); transform: scale(1.08); }
+  #bgmToggle.muted { color: var(--dim); }
+
   main { flex: 1; position: relative; overflow: hidden; }
   .scene {
     position: absolute; inset: 0;
@@ -798,6 +817,9 @@
     <div class="title">🎮 ギュラ鯖RPG</div>
     <button class="home" id="btnHome" style="display:none;">🏠 タイトル</button>
   </header>
+  <button id="bgmToggle" title="BGM切替">🔊</button>
+  <audio id="bgmTitle"  src="audio/title.mp3"  loop preload="auto"></audio>
+  <audio id="bgmBattle" src="audio/battle.mp3" loop preload="auto"></audio>
   <main>
     <!-- Title -->
     <section class="scene active" id="scene-title">
@@ -1140,7 +1162,55 @@ function show(id){
   $('#btnHome').style.display = (id === 'title') ? 'none' : 'flex';
   // 戦闘・タイトル・投稿は全画面表示（ヘッダー隠す）
   document.querySelector('header').style.display = (id === 'battle' || id === 'title' || id === 'submit') ? 'none' : 'flex';
+  switchBgm(id);
 }
+
+//================= BGM =================
+const BGM = {
+  current: null,
+  muted: localStorage.getItem('gyuraBgmMuted') === '1',
+  volume: 0.35,
+  userActivated: false,
+};
+function switchBgm(sceneId){
+  const next = (sceneId === 'battle') ? $('#bgmBattle')
+             : (sceneId === 'title' || sceneId === 'picker' || sceneId === 'submit' || sceneId === 'gallery' || sceneId === 'settings' || sceneId === 'end') ? $('#bgmTitle')
+             : null;
+  if (BGM.current && BGM.current !== next) {
+    BGM.current.pause();
+    BGM.current.currentTime = 0;
+  }
+  BGM.current = next;
+  if (!next) return;
+  next.volume = BGM.muted ? 0 : BGM.volume;
+  if (BGM.userActivated && !BGM.muted) {
+    next.play().catch(()=>{});
+  }
+}
+function updateBgmToggleUi(){
+  const btn = $('#bgmToggle');
+  btn.textContent = BGM.muted ? '🔇' : '🔊';
+  btn.classList.toggle('muted', BGM.muted);
+}
+$('#bgmToggle').addEventListener('click', () => {
+  BGM.muted = !BGM.muted;
+  localStorage.setItem('gyuraBgmMuted', BGM.muted ? '1' : '0');
+  updateBgmToggleUi();
+  if (BGM.current) {
+    BGM.current.volume = BGM.muted ? 0 : BGM.volume;
+    if (!BGM.muted) BGM.current.play().catch(()=>{});
+  }
+});
+// 自動再生制限：最初のユーザー操作で現在のBGMを起動
+function activateBgmOnce(){
+  if (BGM.userActivated) return;
+  BGM.userActivated = true;
+  if (BGM.current && !BGM.muted) BGM.current.play().catch(()=>{});
+}
+['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+  window.addEventListener(ev, activateBgmOnce, { once: false, passive: true })
+);
+updateBgmToggleUi();
 function toast(msg, isErr){
   const t = $('#toast');
   t.textContent = msg;
