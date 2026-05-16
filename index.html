@@ -2787,11 +2787,19 @@ async function executeTech(tech){
     popDmg('+'+heal, 'heal', 'ally');
     log(`💚 ${me.name} の ${tech.name}！ HP ${heal} 回復！`, 'heal');
   } else if (tech.type === 'buff') {
-    G.allyBuff = { atkMult: 1 + eff.atkPlusPct / 100, turnsLeft: eff.turns };
+    // 既にバフ中なら倍率は加算・ターン数は max（重ねがけ）
+    const addMult = eff.atkPlusPct / 100;
+    if (G.allyBuff.turnsLeft > 0) {
+      G.allyBuff.atkMult += addMult;
+      G.allyBuff.turnsLeft = Math.max(G.allyBuff.turnsLeft, eff.turns);
+    } else {
+      G.allyBuff = { atkMult: 1 + addMult, turnsLeft: eff.turns };
+    }
     $('#allySprite').classList.remove('buffed'); void $('#allySprite').offsetWidth;
     $('#allySprite').classList.add('buffed');
     popDmg('UP!', 'heal', 'ally');
-    log(`💪 ${me.name} の ${tech.name}！ 攻撃 +${eff.atkPlusPct.toFixed(0)}% (${eff.turns}T)`, 'crit');
+    const totalPct = Math.round((G.allyBuff.atkMult - 1) * 100);
+    log(`💪 ${me.name} の ${tech.name}！ 攻撃 +${eff.atkPlusPct.toFixed(0)}% (累計+${totalPct}% / ${G.allyBuff.turnsLeft}T)`, 'crit');
   }
 }
 
@@ -2868,6 +2876,7 @@ async function finishPlayerTurn(){
   refreshBars();
   await enemyTurn();
   if (G.pHP <= 0) {
+    $('#allySprite').classList.add('dying');
     log(`${G.myChar.name} は ちからつきた…`, 'sys');
     await sleep(900);
     endBattle(false);
@@ -2925,8 +2934,9 @@ function chooseEnemyAction(){
       else if (hpRatio < 0.75) w = 40;
       else w = 8;
     } else if (tech.type === 'buff') {
-      if (G.enemyBuff.turnsLeft > 0) continue;
-      w = hpRatio > 0.6 ? 60 : 15;
+      if (G.enemyBuff.atkMult >= 3.0) continue; // 累計+200%以上は重ねない
+      const stackPenalty = G.enemyBuff.turnsLeft > 0 ? 0.4 : 1.0;
+      w = (hpRatio > 0.6 ? 60 : 15) * stackPenalty;
     }
     if (w > 0) candidates.push({ kind:'tech', tech, weight:w });
   }
@@ -2966,11 +2976,18 @@ async function executeEnemyTech(tech){
     popDmg('+'+heal, 'heal', 'enemy');
     log(`💚 ${opp.name} の ${tech.name}！ HP ${heal} 回復！`, 'heal');
   } else if (tech.type === 'buff') {
-    G.enemyBuff = { atkMult: 1 + eff.atkPlusPct / 100, turnsLeft: eff.turns };
+    const addMult = eff.atkPlusPct / 100;
+    if (G.enemyBuff.turnsLeft > 0) {
+      G.enemyBuff.atkMult += addMult;
+      G.enemyBuff.turnsLeft = Math.max(G.enemyBuff.turnsLeft, eff.turns);
+    } else {
+      G.enemyBuff = { atkMult: 1 + addMult, turnsLeft: eff.turns };
+    }
     $('#enemySprite').classList.remove('buffed'); void $('#enemySprite').offsetWidth;
     $('#enemySprite').classList.add('buffed');
     popDmg('UP!', 'heal', 'enemy');
-    log(`💪 ${opp.name} の ${tech.name}！ 攻撃 +${eff.atkPlusPct.toFixed(0)}% (${eff.turns}T)`, 'crit');
+    const totalPct = Math.round((G.enemyBuff.atkMult - 1) * 100);
+    log(`💪 ${opp.name} の ${tech.name}！ 攻撃 +${eff.atkPlusPct.toFixed(0)}% (累計+${totalPct}% / ${G.enemyBuff.turnsLeft}T)`, 'crit');
   }
 }
 
