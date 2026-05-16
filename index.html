@@ -2949,6 +2949,8 @@ async function executeEnemyTech(tech){
 }
 
 async function enemyTurn(){
+  // 自分の行動の余韻 → 敵行動の間
+  await sleep(550);
   const me = G.myChar, opp = G.oppChar;
   const meT = traits(me), oppT = traits(opp);
   const action = chooseEnemyAction();
