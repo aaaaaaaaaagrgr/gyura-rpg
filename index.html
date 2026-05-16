@@ -134,9 +134,9 @@
   }
   .title-bg {
     position: absolute; inset: 0;
-    background-image: url('images/title/title_main.jpg');
     background-size: cover; background-position: center;
     filter: saturate(1.05);
+    overflow: hidden;
   }
   .title-bg::after {
     content: ""; position: absolute; inset: 0;
@@ -547,6 +547,7 @@
     position: absolute; inset: 0;
     background-size: cover; background-position: center bottom;
     filter: brightness(.85) saturate(1.05);
+    overflow: hidden;
   }
   .battle-bg-img::after {
     content: ""; position: absolute; inset: 0;
@@ -760,13 +761,74 @@
   }
 
   /* ========== Settings ========== */
-  #scene-settings { padding: 30px; text-align: center; }
-  #scene-settings h2 { color: var(--accent); margin: 0 0 14px; }
-  #scene-settings .placeholder {
-    background: var(--panel2); border: 1px dashed #3a4080;
-    border-radius: 10px; padding: 30px; color: var(--dim);
-    max-width: 480px; margin: 20px auto;
+  #scene-settings { padding: 20px 30px; text-align: center; overflow-y: auto; }
+  #scene-settings h2 { color: var(--accent); margin: 0 0 6px; }
+  #scene-settings .settings-sub { color: var(--dim); font-size: 12px; margin: 0 0 14px; }
+  .settings-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    max-width: 680px; margin: 0 auto 14px;
   }
+  .setting-card {
+    background: var(--panel2); border: 1px solid #3a4080;
+    border-radius: 10px; padding: 12px; text-align: center;
+  }
+  .setting-card .setting-icon { font-size: 24px; }
+  .setting-card h3 { margin: 4px 0 6px; color: var(--accent); font-size: 13px; }
+  .setting-card .setting-current {
+    font-size: 11px; color: var(--dim);
+    background: rgba(0,0,0,.3); border-radius: 6px;
+    padding: 6px 8px; margin: 6px 0 8px;
+    min-height: 24px;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .setting-card .setting-current.pinned { color: var(--accent); }
+  .setting-card .setting-actions { display: flex; gap: 6px; justify-content: center; }
+  .btn-mini {
+    background: transparent; border: 1px solid #3a4080;
+    color: var(--text); padding: 5px 10px; border-radius: 6px;
+    font: inherit; font-size: 11px; cursor: pointer;
+  }
+  .btn-mini:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Media modals */
+  .media-modal { position: absolute; inset: 0; z-index: 200; display: none; }
+  .media-modal.show { display: flex; align-items: center; justify-content: center; }
+  .media-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.7); }
+  .media-modal-content {
+    position: relative; background: var(--panel); border: 1px solid var(--accent);
+    border-radius: 12px; padding: 20px; min-width: 320px; max-width: 480px;
+    max-height: 85%; display: flex; flex-direction: column; gap: 10px;
+  }
+  .media-modal-content.media-modal-wide { max-width: 700px; width: 90%; }
+  .media-modal-content h3 { margin: 0; color: var(--accent); text-align: center; }
+  .media-modal-hint { margin: 0; color: var(--dim); font-size: 12px; text-align: center; }
+  .media-file-input { padding: 8px; background: var(--panel2); border-radius: 6px; color: var(--text); }
+  .media-form-row { display: flex; flex-direction: column; gap: 4px; }
+  .media-form-row label { font-size: 12px; color: var(--dim); }
+  .media-modal-actions { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
+  .media-list {
+    flex: 1; overflow-y: auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px; padding: 4px;
+  }
+  .media-item {
+    background: var(--panel2); border: 1px solid #3a4080;
+    border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .media-item.is-pinned { border-color: var(--accent); box-shadow: 0 0 8px rgba(255,210,74,.3); }
+  .media-item-thumb {
+    width: 100%; aspect-ratio: 16/9; background: #000;
+    border-radius: 4px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--dim); font-size: 24px;
+  }
+  .media-item-thumb img, .media-item-thumb video { width: 100%; height: 100%; object-fit: cover; }
+  .media-item-name { font-size: 12px; color: var(--text); font-weight: bold;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .media-item-sub { font-size: 10px; color: var(--dim); }
+  .media-item audio { width: 100%; height: 32px; }
+  .media-item-actions { display: flex; gap: 4px; }
+  .media-item-actions .btn-mini { flex: 1; font-size: 10px; padding: 4px; }
 
   /* ========== Toast ========== */
   .toast {
@@ -989,15 +1051,84 @@
       <div class="end-wrap" id="endWrap"></div>
     </section>
 
-    <!-- Settings (placeholder) -->
+    <!-- Settings -->
     <section class="scene" id="scene-settings">
       <h2>⚙️ 設定</h2>
-      <div class="placeholder">
-        まだ設定項目はないよ。<br>
-        今後ここにBGM・効果音・難易度などを置く予定。
+      <p class="settings-sub">BGM・タイトル画像・戦闘背景をみんなで投稿。好きなのに固定もできる</p>
+      <div class="settings-grid">
+        <div class="setting-card" data-mtype="bgm_title">
+          <div class="setting-icon">🎵</div>
+          <h3>タイトルBGM</h3>
+          <div class="setting-current" id="cur-bgm_title">—</div>
+          <div class="setting-actions">
+            <button class="btn-mini" data-act="submit">📤 投稿</button>
+            <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+          </div>
+        </div>
+        <div class="setting-card" data-mtype="bgm_battle">
+          <div class="setting-icon">⚔️</div>
+          <h3>戦闘BGM</h3>
+          <div class="setting-current" id="cur-bgm_battle">—</div>
+          <div class="setting-actions">
+            <button class="btn-mini" data-act="submit">📤 投稿</button>
+            <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+          </div>
+        </div>
+        <div class="setting-card" data-mtype="image_title">
+          <div class="setting-icon">🖼️</div>
+          <h3>タイトル画像</h3>
+          <div class="setting-current" id="cur-image_title">—</div>
+          <div class="setting-actions">
+            <button class="btn-mini" data-act="submit">📤 投稿</button>
+            <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+          </div>
+        </div>
+        <div class="setting-card" data-mtype="image_bg">
+          <div class="setting-icon">🌄</div>
+          <h3>戦闘背景</h3>
+          <div class="setting-current" id="cur-image_bg">—</div>
+          <div class="setting-actions">
+            <button class="btn-mini" data-act="submit">📤 投稿</button>
+            <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+          </div>
+        </div>
       </div>
       <button class="btn" data-menu="title">← タイトルへ戻る</button>
     </section>
+
+    <!-- メディア投稿モーダル -->
+    <div class="media-modal" id="mediaSubmitModal">
+      <div class="media-modal-backdrop"></div>
+      <div class="media-modal-content">
+        <h3 id="mediaSubmitTitle">投稿</h3>
+        <p class="media-modal-hint" id="mediaSubmitHint">ファイル選んで送信</p>
+        <input type="file" id="mediaFileInput" class="media-file-input">
+        <div class="media-form-row">
+          <label>名前</label>
+          <input type="text" id="mediaNameInput" class="text-input" maxlength="40" placeholder="例：鯖の朝">
+        </div>
+        <div class="media-form-row">
+          <label>投稿者</label>
+          <input type="text" id="mediaSubmitterInput" class="text-input" maxlength="20" placeholder="任意">
+        </div>
+        <div class="media-modal-actions">
+          <button class="btn" id="mediaSubmitBtn">📤 アップロード</button>
+          <button class="btn" id="mediaSubmitCancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- メディアギャラリーモーダル -->
+    <div class="media-modal" id="mediaGalleryModal">
+      <div class="media-modal-backdrop"></div>
+      <div class="media-modal-content media-modal-wide">
+        <h3 id="mediaGalleryTitle">みんなの投稿</h3>
+        <div class="media-list" id="mediaGalleryList"></div>
+        <div class="media-modal-actions">
+          <button class="btn" id="mediaGalleryCancel">閉じる</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Tech popup (battle中・技選択) -->
     <div class="tech-popup" id="techPopup">
@@ -1089,14 +1220,51 @@ const DEFAULTS = [
     techs: [] },
 ];
 
-//================= 背景 =================
-const BG_LIST = [ 'images/bg/bg_purple.jpg', 'images/bg/bg_volcano.jpg', 'images/bg/bg_forest.jpg' ];
+//================= メディア（BGM・タイトル画像・戦闘背景） =================
+// プリセット：投稿が0でも遊べるように
+const PRESET_MEDIA = {
+  bgm_title:    [{ id:'preset_bgm_title',    url:'audio/title.mp3',          name:'集えギュラ鯖',     submitter:'(プリセット)' }],
+  bgm_battle:   [{ id:'preset_bgm_battle',   url:'audio/battle.mp3',         name:'煽りレスバトル',   submitter:'(プリセット)' }],
+  image_title:  [
+    { id:'preset_title_main',   url:'images/title/title_main.jpg',   name:'タイトル(メイン)',   submitter:'(プリセット)' },
+    { id:'preset_title_dark',   url:'images/title/title_dark.jpg',   name:'タイトル(ダーク)',   submitter:'(プリセット)' },
+    { id:'preset_title_purple', url:'images/title/title_purple.jpg', name:'タイトル(紫)',       submitter:'(プリセット)' },
+    { id:'preset_title_sunset', url:'images/title/title_sunset.jpg', name:'タイトル(夕焼け)',   submitter:'(プリセット)' },
+  ],
+  image_bg:     [
+    { id:'preset_bg_purple',  url:'images/bg/bg_purple.jpg',  name:'紫遺跡', submitter:'(プリセット)' },
+    { id:'preset_bg_volcano', url:'images/bg/bg_volcano.jpg', name:'火山',   submitter:'(プリセット)' },
+    { id:'preset_bg_forest',  url:'images/bg/bg_forest.jpg',  name:'森',     submitter:'(プリセット)' },
+  ],
+};
+const MEDIA_LABEL = {
+  bgm_title:   'タイトルBGM',
+  bgm_battle:  '戦闘BGM',
+  image_title: 'タイトル画像',
+  image_bg:    '戦闘背景',
+};
+const MEDIA_ACCEPT = {
+  bgm_title:   'audio/mpeg,audio/mp3',
+  bgm_battle:  'audio/mpeg,audio/mp3',
+  image_title: 'image/jpeg,image/png,video/mp4,video/webm',
+  image_bg:    'image/jpeg,image/png,video/mp4,video/webm',
+};
+const MEDIA_MAX_BYTES = {
+  bgm_title:   10 * 1024 * 1024,
+  bgm_battle:  10 * 1024 * 1024,
+  image_title: 20 * 1024 * 1024,
+  image_bg:    20 * 1024 * 1024,
+};
+const isVideoUrl = url => /\.(mp4|webm|mov)(\?|$)/i.test(url || '');
+const isAudioUrl = url => /\.(mp3|m4a|ogg|wav)(\?|$)/i.test(url || '');
 
 //================= 状態 =================
 const G = {
   playerName: '',
   myChar: null, oppChar: null,
   characters: [], loaded: false,
+  media: { bgm_title:[], bgm_battle:[], image_title:[], image_bg:[] },
+  pinned: { bgm_title:null, bgm_battle:null, image_title:null, image_bg:null },
   pHP:0, pHPMax:0, pMP:3, pMPMax:5,
   pTP:0, pTPMax:10,
   eHP:0, eHPMax:0,
@@ -1139,6 +1307,7 @@ function show(id){
   $('#scene-'+id).classList.add('active');
   // ホームボタンはタイトル・戦闘以外で表示
   $('#btnHome').style.display = (id === 'title' || id === 'battle') ? 'none' : 'flex';
+  if (id === 'settings') refreshSettingsCards();
   switchBgm(id);
 }
 
@@ -1188,6 +1357,162 @@ function activateBgmOnce(){
   window.addEventListener(ev, activateBgmOnce, { once: false, passive: true })
 );
 updateBgmToggleUi();
+
+//================= メディア設定UI =================
+function refreshSettingsCards(){
+  ['bgm_title','bgm_battle','image_title','image_bg'].forEach(type => {
+    const el = $('#cur-'+type);
+    const pid = G.pinned[type];
+    const list = allMedia(type);
+    const pinnedItem = pid ? list.find(m => m.id === pid) : null;
+    if (pinnedItem) {
+      el.textContent = '📌 ' + (pinnedItem.name || '(無題)');
+      el.classList.add('pinned');
+    } else {
+      const count = list.length;
+      el.textContent = `🎲 ランダム (${count}件)`;
+      el.classList.remove('pinned');
+    }
+  });
+}
+$$('#scene-settings .setting-card').forEach(card => {
+  const type = card.dataset.mtype;
+  card.querySelectorAll('button[data-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = btn.dataset.act;
+      if (act === 'submit') openMediaSubmit(type);
+      else if (act === 'gallery') openMediaGallery(type);
+    });
+  });
+});
+
+// ---- 投稿モーダル ----
+let currentSubmitType = null;
+function openMediaSubmit(type){
+  currentSubmitType = type;
+  $('#mediaSubmitTitle').textContent = '📤 ' + MEDIA_LABEL[type] + ' を投稿';
+  const hint = (type === 'bgm_title' || type === 'bgm_battle')
+    ? 'MP3 (最大10MB)' : 'JPG/PNG画像 or MP4/WebM動画 (最大20MB・動画は5〜15秒推奨・常に無音再生)';
+  $('#mediaSubmitHint').textContent = hint;
+  $('#mediaFileInput').value = '';
+  $('#mediaFileInput').accept = MEDIA_ACCEPT[type];
+  $('#mediaNameInput').value = '';
+  $('#mediaSubmitterInput').value = '';
+  $('#mediaSubmitModal').classList.add('show');
+}
+function closeMediaSubmit(){
+  $('#mediaSubmitModal').classList.remove('show');
+  currentSubmitType = null;
+}
+$('#mediaSubmitCancel').addEventListener('click', closeMediaSubmit);
+$('#mediaSubmitModal .media-modal-backdrop').addEventListener('click', closeMediaSubmit);
+$('#mediaSubmitBtn').addEventListener('click', async () => {
+  const type = currentSubmitType; if (!type) return;
+  const file = $('#mediaFileInput').files[0];
+  if (!file) { toast('ファイルを選んでね', true); return; }
+  const name = $('#mediaNameInput').value.trim();
+  const submitter = $('#mediaSubmitterInput').value.trim();
+  const btn = $('#mediaSubmitBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> アップロード中...';
+  try {
+    await uploadMediaFile(type, file, name, submitter);
+    toast('投稿しました！');
+    await loadMedia();
+    refreshSettingsCards();
+    applyTitleBg();
+    applyBgmSources();
+    closeMediaSubmit();
+  } catch (e) {
+    console.error(e);
+    toast('失敗: ' + (e.message || e), true);
+  } finally {
+    btn.disabled = false; btn.textContent = '📤 アップロード';
+  }
+});
+
+// ---- ギャラリーモーダル ----
+let currentGalleryType = null;
+function openMediaGallery(type){
+  currentGalleryType = type;
+  $('#mediaGalleryTitle').textContent = '📂 ' + MEDIA_LABEL[type];
+  renderMediaGallery();
+  $('#mediaGalleryModal').classList.add('show');
+}
+function closeMediaGallery(){
+  // 再生中の音/動画を止める
+  $$('#mediaGalleryList audio, #mediaGalleryList video').forEach(el => { try { el.pause(); } catch {} });
+  $('#mediaGalleryModal').classList.remove('show');
+  currentGalleryType = null;
+}
+$('#mediaGalleryCancel').addEventListener('click', closeMediaGallery);
+$('#mediaGalleryModal .media-modal-backdrop').addEventListener('click', closeMediaGallery);
+function renderMediaGallery(){
+  const type = currentGalleryType;
+  const list = allMedia(type);
+  const pid = G.pinned[type];
+  const listEl = $('#mediaGalleryList');
+  listEl.innerHTML = '';
+  if (list.length === 0) {
+    listEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--dim);padding:20px;">まだ投稿がないよ</div>';
+    return;
+  }
+  // ランダムに戻すボタン（先頭）
+  const resetBtn = document.createElement('div');
+  resetBtn.className = 'media-item' + (pid ? '' : ' is-pinned');
+  resetBtn.innerHTML = `
+    <div class="media-item-thumb">🎲</div>
+    <div class="media-item-name">ランダム</div>
+    <div class="media-item-sub">毎回違うのが選ばれる</div>
+    <div class="media-item-actions">
+      <button class="btn-mini" data-pin="">${pid ? '⭐ これに戻す' : '✓ 現在こちら'}</button>
+    </div>`;
+  listEl.appendChild(resetBtn);
+  // 各アイテム
+  for (const m of list) {
+    const isPinned = pid === m.id;
+    const item = document.createElement('div');
+    item.className = 'media-item' + (isPinned ? ' is-pinned' : '');
+    let thumbHtml = '';
+    if (type === 'bgm_title' || type === 'bgm_battle') {
+      thumbHtml = `<div class="media-item-thumb">🎵</div><audio src="${esc(m.url)}" controls preload="none"></audio>`;
+    } else if (isVideoUrl(m.url)) {
+      thumbHtml = `<div class="media-item-thumb"><video src="${esc(m.url)}" muted loop playsinline></video></div>`;
+    } else {
+      thumbHtml = `<div class="media-item-thumb"><img src="${esc(m.url)}" alt=""></div>`;
+    }
+    item.innerHTML = `
+      ${thumbHtml}
+      <div class="media-item-name">${esc(m.name || '(無題)')}</div>
+      <div class="media-item-sub">${esc(m.submitter || '匿名')}</div>
+      <div class="media-item-actions">
+        <button class="btn-mini" data-pin="${esc(m.id)}">${isPinned ? '✓ 固定中' : '📌 これに固定'}</button>
+      </div>`;
+    // 動画ホバーで再生
+    const vid = item.querySelector('video');
+    if (vid) {
+      item.addEventListener('mouseenter', () => vid.play().catch(()=>{}));
+      item.addEventListener('mouseleave', () => { vid.pause(); vid.currentTime = 0; });
+    }
+    listEl.appendChild(item);
+  }
+  listEl.querySelectorAll('button[data-pin]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-pin');
+      G.pinned[type] = id || null;
+      savePinned();
+      renderMediaGallery();
+      refreshSettingsCards();
+      // すぐ反映
+      if (type === 'image_title') applyTitleBg();
+      if (type === 'bgm_title' || type === 'bgm_battle') {
+        applyBgmSources();
+        // 現在のシーンが該当BGMなら再起動
+        const cur = $('.scene.active')?.id?.replace('scene-','');
+        switchBgm(cur);
+      }
+    });
+  });
+}
 function toast(msg, isErr){
   const t = $('#toast');
   t.textContent = msg;
@@ -1225,6 +1550,80 @@ async function loadCharacters(){
     G.characters = [...(data||[]), ...DEFAULTS].map(applyArchetypeStats);
   }
   G.loaded = true;
+}
+
+// ========== メディア（BGM・タイトル画像・戦闘背景） ==========
+function loadPinned(){
+  try { return JSON.parse(localStorage.getItem('gyuraPinned') || '{}'); } catch { return {}; }
+}
+function savePinned(){
+  localStorage.setItem('gyuraPinned', JSON.stringify(G.pinned));
+}
+function allMedia(type){
+  return [...(G.media[type]||[]), ...PRESET_MEDIA[type]];
+}
+function pickMedia(type){
+  const list = allMedia(type);
+  const pid = G.pinned[type];
+  if (pid) {
+    const found = list.find(m => m.id === pid);
+    if (found) return found;
+  }
+  return pick(list);
+}
+async function loadMedia(){
+  const { data, error } = await sb.from('media').select('*').order('created_at', { ascending: false });
+  if (error) { console.warn('media DB error:', error); return; }
+  G.media = { bgm_title:[], bgm_battle:[], image_title:[], image_bg:[] };
+  for (const m of (data||[])) {
+    if (G.media[m.type]) G.media[m.type].push(m);
+  }
+}
+async function uploadMediaFile(type, file, displayName, submitter){
+  if (!file) throw new Error('ファイルが選択されていません');
+  if (file.size > MEDIA_MAX_BYTES[type]) {
+    throw new Error(`ファイルサイズ上限 ${Math.floor(MEDIA_MAX_BYTES[type]/1024/1024)}MB を超えています`);
+  }
+  const extMap = { 'audio/mpeg':'mp3','audio/mp3':'mp3','image/jpeg':'jpg','image/png':'png','video/mp4':'mp4','video/webm':'webm' };
+  const ext = extMap[file.type] || file.name.split('.').pop().toLowerCase();
+  const path = `${type}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const { error: upErr } = await sb.storage.from('media').upload(path, file, { cacheControl:'3600', upsert:false, contentType:file.type });
+  if (upErr) throw upErr;
+  const { data: pub } = sb.storage.from('media').getPublicUrl(path);
+  const url = pub.publicUrl;
+  const { error: insErr } = await sb.from('media').insert({ type, url, name: displayName || null, submitter: submitter || null });
+  if (insErr) throw insErr;
+  return url;
+}
+
+// ========== 適用：タイトル画像・戦闘背景・BGM ==========
+function applyMediaBg(el, m){
+  el.innerHTML = '';
+  el.style.backgroundImage = '';
+  if (!m) return;
+  if (isVideoUrl(m.url)) {
+    const v = document.createElement('video');
+    v.src = m.url; v.loop = true; v.muted = true; v.autoplay = true; v.playsInline = true;
+    v.setAttribute('playsinline','');
+    v.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    el.appendChild(v);
+    v.play().catch(()=>{});
+  } else {
+    el.style.backgroundImage = `url("${m.url}")`;
+  }
+}
+function applyTitleBg(){
+  applyMediaBg($('#titleBg'), pickMedia('image_title'));
+}
+function applyBattleBg(){
+  applyMediaBg($('#battleBg'), pickMedia('image_bg'));
+}
+function applyBgmSources(){
+  const t = pickMedia('bgm_title');
+  const b = pickMedia('bgm_battle');
+  const at = $('#bgmTitle'), ab = $('#bgmBattle');
+  if (t && at.getAttribute('src') !== t.url) { at.src = t.url; }
+  if (b && ab.getAttribute('src') !== b.url) { ab.src = b.url; }
 }
 async function uploadImage(file){
   if (!file) return null;
@@ -2003,9 +2402,8 @@ function startBattle(){
   G.enemyBuff = { atkMult: 1, turnsLeft: 0 };
   G.totalDmg = 0; G.turns = 0; G.startTime = Date.now();
   G.guarding = false;
-  // BG random
-  const bg = pick(BG_LIST);
-  $('#battleBg').style.backgroundImage = `url(${bg})`;
+  // BG: 投稿+プリセットから選択（固定 or ランダム、動画も対応）
+  applyBattleBg();
   // chars
   $('#allyNm').textContent = me.name;
   $('#enemyNm').textContent = opp.name;
@@ -2416,9 +2814,16 @@ function endBattle(win){
   show('end');
 }
 
-// 起動時：ウィザードUI構築 + キャラロード
+// 起動時：固定設定読み込み + プリセットで即時表示 + UI構築 + 非同期ロード
+G.pinned = Object.assign({ bgm_title:null, bgm_battle:null, image_title:null, image_bg:null }, loadPinned());
+applyTitleBg();
+applyBgmSources();
 buildWizardUI();
 loadCharacters();
+loadMedia().then(() => {
+  applyTitleBg();
+  applyBgmSources();
+});
 </script>
 </body>
 </html>
