@@ -677,6 +677,37 @@
   .bar .num { color: var(--text); font-size: clamp(11px, 1.2vw, 14px); min-width: 70px; text-align: center; text-shadow: 0 0 4px #000; font-weight: bold; }
   .hud.enemy .bar .num { text-align: center; }
 
+  /* バフ/状態バッジ */
+  .buff-row {
+    margin-top: 6px;
+    display: flex; flex-wrap: wrap; gap: 4px;
+    min-height: 22px;
+  }
+  .hud.enemy .buff-row { justify-content: flex-end; }
+  .buff-chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(20,30,80,.85);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: clamp(10px, 1.1vw, 12px);
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(0,0,0,.8);
+    animation: buffPulse 1.4s ease-in-out infinite;
+  }
+  .buff-chip.debuff { border-color: var(--accent2); color: var(--accent2); }
+  .buff-chip .turns { color: var(--text); opacity: .75; font-size: .85em; }
+  @keyframes buffPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(255,210,74,0); }
+    50%      { box-shadow: 0 0 10px rgba(255,210,74,.55); }
+  }
+  .buff-chip.debuff { animation: debuffPulse 1.4s ease-in-out infinite; }
+  @keyframes debuffPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(255,58,93,0); }
+    50%      { box-shadow: 0 0 10px rgba(255,58,93,.55); }
+  }
+
   /* Battle UI overlay (背景の上に重なる) */
   .battle-overlay {
     position: absolute;
@@ -1011,12 +1042,14 @@
             <div class="bar-row"><span class="lbl">HP</span><div class="bar hp" id="allyHpBar"><div class="fill" id="allyHpFill"></div></div><span class="num" id="allyHpTxt">0/0</span></div>
             <div class="bar-row"><span class="lbl">MP</span><div class="bar mp" id="allyMpBar"><div class="fill" id="allyMpFill"></div></div><span class="num" id="allyMpTxt">0/0</span></div>
             <div class="bar-row"><span class="lbl">TP</span><div class="bar tp" id="allyTpBar"><div class="fill" id="allyTpFill"></div></div><span class="num" id="allyTpTxt">0/10</span></div>
+            <div class="buff-row" id="allyBuffs"></div>
           </div>
           <div class="hud enemy" id="hudEnemy">
             <div class="nm" id="enemyNm">敵</div>
             <div class="bar-row"><span class="num" id="enemyHpTxt">0/0</span><div class="bar hp" id="enemyHpBar"><div class="fill" id="enemyHpFill"></div></div><span class="lbl">HP</span></div>
             <div class="bar-row"><span class="num" id="enemyMpTxt">0/0</span><div class="bar mp" id="enemyMpBar"><div class="fill" id="enemyMpFill"></div></div><span class="lbl">MP</span></div>
             <div class="bar-row"><span class="num" id="enemyTpTxt">0/10</span><div class="bar tp" id="enemyTpBar"><div class="fill" id="enemyTpFill"></div></div><span class="lbl">TP</span></div>
+            <div class="buff-row" id="enemyBuffs"></div>
           </div>
           <div class="char-slot ally">
             <div class="char-sprite" id="allySprite"></div>
@@ -2444,6 +2477,33 @@ function refreshBars(){
   const tP = Math.max(0, G.pTP/G.pTPMax*100);
   $('#allyTpFill').style.width = tP+'%';
   $('#allyTpTxt').textContent = `${Math.round(G.pTP)}/${G.pTPMax}`;
+  refreshBuffs();
+}
+
+// バフ・状態バッジ表示
+function buildBuffChips(side){
+  const buff = side === 'ally' ? G.allyBuff : G.enemyBuff;
+  const chips = [];
+  if (buff && buff.turnsLeft > 0 && buff.atkMult > 1) {
+    const pct = Math.round((buff.atkMult - 1) * 100);
+    chips.push(`<span class="buff-chip">💪 攻+${pct}% <span class="turns">${buff.turnsLeft}T</span></span>`);
+  }
+  // 防御中（自分のターン中の guarding はプレイヤーのみ表示）
+  if (side === 'ally' && G.guarding) {
+    chips.push(`<span class="buff-chip">🛡️ ぼうぎょ</span>`);
+  }
+  // 特性由来の常時効果（戦闘中ずっと有効なものは小さく表示）
+  const char = side === 'ally' ? G.myChar : G.oppChar;
+  const t = traits(char);
+  if (t.saisei)   chips.push(`<span class="buff-chip">🌿 再生</span>`);
+  if (t.kyuuketsu) chips.push(`<span class="buff-chip">🩸 吸血</span>`);
+  if (t.teppeki)  chips.push(`<span class="buff-chip">🛡 鉄壁</span>`);
+  if (t.mahoutate) chips.push(`<span class="buff-chip">✨ 魔法盾</span>`);
+  return chips.join('');
+}
+function refreshBuffs(){
+  $('#allyBuffs').innerHTML  = buildBuffChips('ally');
+  $('#enemyBuffs').innerHTML = buildBuffChips('enemy');
 }
 function enableCmds(on){
   const me = G.myChar;
