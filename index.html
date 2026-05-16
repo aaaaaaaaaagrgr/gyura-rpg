@@ -925,8 +925,21 @@
 
   /* ========== Settings ========== */
   #scene-settings { padding: 20px 30px; text-align: center; overflow-y: auto; }
-  #scene-settings h2 { color: var(--accent); margin: 0 0 6px; }
+  #scene-settings h2 { color: var(--accent); margin: 0 0 10px; }
   #scene-settings .settings-sub { color: var(--dim); font-size: 12px; margin: 0 0 14px; }
+  .settings-tabs {
+    display: flex; gap: 6px; justify-content: center;
+    margin: 0 auto 12px; max-width: 480px;
+  }
+  .settings-tab {
+    flex: 1; background: var(--panel2); border: 1px solid #3a4080;
+    color: var(--dim); padding: 8px 14px; border-radius: 8px;
+    font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .settings-tab.active { background: var(--panel); border-color: var(--accent); color: var(--accent); }
+  .settings-tab:hover { color: var(--text); }
+  .settings-page { display: none; }
+  .settings-page.active { display: block; }
   .settings-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
     max-width: 680px; margin: 0 auto 14px;
@@ -1230,47 +1243,79 @@
     <!-- Settings -->
     <section class="scene" id="scene-settings">
       <h2>⚙️ 設定</h2>
-      <p class="settings-sub">BGM・タイトル画像・戦闘背景をみんなで投稿。好きなのに固定もできる</p>
-      <div class="settings-grid">
-        <div class="setting-card" data-mtype="bgm_title">
-          <div class="setting-icon">🎵</div>
-          <h3>タイトルBGM</h3>
-          <div class="setting-current" id="cur-bgm_title">—</div>
-          <div class="setting-actions">
-            <button class="btn-mini" data-act="submit">📤 投稿</button>
-            <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-stab="media">🎨 メディア</button>
+        <button class="settings-tab" data-stab="feedback">💬 要望・感想</button>
+      </div>
+
+      <div class="settings-page active" data-spage="media">
+        <p class="settings-sub">BGM・タイトル画像・戦闘背景をみんなで投稿。好きなのに固定もできる</p>
+        <div class="settings-grid">
+          <div class="setting-card" data-mtype="bgm_title">
+            <div class="setting-icon">🎵</div>
+            <h3>タイトルBGM</h3>
+            <div class="setting-current" id="cur-bgm_title">—</div>
+            <div class="setting-actions">
+              <button class="btn-mini" data-act="submit">📤 投稿</button>
+              <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+            </div>
           </div>
-        </div>
-        <div class="setting-card" data-mtype="bgm_battle">
-          <div class="setting-icon">⚔️</div>
-          <h3>戦闘BGM</h3>
-          <div class="setting-current" id="cur-bgm_battle">—</div>
-          <div class="setting-actions">
-            <button class="btn-mini" data-act="submit">📤 投稿</button>
-            <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+          <div class="setting-card" data-mtype="bgm_battle">
+            <div class="setting-icon">⚔️</div>
+            <h3>戦闘BGM</h3>
+            <div class="setting-current" id="cur-bgm_battle">—</div>
+            <div class="setting-actions">
+              <button class="btn-mini" data-act="submit">📤 投稿</button>
+              <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+            </div>
           </div>
-        </div>
-        <div class="setting-card" data-mtype="image_title">
-          <div class="setting-icon">🖼️</div>
-          <h3>タイトル画像</h3>
-          <div class="setting-current" id="cur-image_title">—</div>
-          <div class="setting-actions">
-            <button class="btn-mini" data-act="submit">📤 投稿</button>
-            <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+          <div class="setting-card" data-mtype="image_title">
+            <div class="setting-icon">🖼️</div>
+            <h3>タイトル画像</h3>
+            <div class="setting-current" id="cur-image_title">—</div>
+            <div class="setting-actions">
+              <button class="btn-mini" data-act="submit">📤 投稿</button>
+              <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+            </div>
           </div>
-        </div>
-        <div class="setting-card" data-mtype="image_bg">
-          <div class="setting-icon">🌄</div>
-          <h3>戦闘背景</h3>
-          <div class="setting-current" id="cur-image_bg">—</div>
-          <div class="setting-actions">
-            <button class="btn-mini" data-act="submit">📤 投稿</button>
-            <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+          <div class="setting-card" data-mtype="image_bg">
+            <div class="setting-icon">🌄</div>
+            <h3>戦闘背景</h3>
+            <div class="setting-current" id="cur-image_bg">—</div>
+            <div class="setting-actions">
+              <button class="btn-mini" data-act="submit">📤 投稿</button>
+              <button class="btn-mini" data-act="gallery">📂 みんなの</button>
+            </div>
           </div>
         </div>
       </div>
-      <button class="btn" data-menu="title">← タイトルへ戻る</button>
+
+      <div class="settings-page" data-spage="feedback">
+        <p class="settings-sub">気づいたバグ・遊んで思った要望・感想を自由に書いて。<br>運営/制作担当が読んで次のアップデートに反映する👀</p>
+        <button class="btn primary" id="btnOpenFeedback">📝 要望・感想を書く</button>
+        <p class="settings-sub" style="margin-top:14px;">例：「○○の技が強すぎる」「BGMでこんなジャンル欲しい」「キャラ選択画面が見にくい」</p>
+      </div>
+
+      <button class="btn" data-menu="title" style="margin-top:14px;">← タイトルへ戻る</button>
     </section>
+
+    <!-- 要望投稿モーダル -->
+    <div class="media-modal" id="feedbackModal">
+      <div class="media-modal-backdrop"></div>
+      <div class="media-modal-content">
+        <h3>💬 要望・感想を送る</h3>
+        <p class="media-modal-hint">自由に書いてOK。返信はないけど、ちゃんと読んで反映するよ</p>
+        <textarea id="feedbackText" class="text-input" rows="6" maxlength="1000" placeholder="例：○○の技が強すぎる気がする" style="resize:vertical;min-height:120px;"></textarea>
+        <div class="media-form-row">
+          <label>投稿者名（任意）</label>
+          <input type="text" id="feedbackSubmitter" class="text-input" maxlength="20" placeholder="任意">
+        </div>
+        <div class="media-modal-actions">
+          <button class="btn" id="feedbackSubmitBtn">📤 送信</button>
+          <button class="btn" id="feedbackCancelBtn">キャンセル</button>
+        </div>
+      </div>
+    </div>
 
     <!-- メディア投稿モーダル -->
     <div class="media-modal" id="mediaSubmitModal">
@@ -1548,6 +1593,46 @@ function refreshSettingsCards(){
     }
   });
 }
+// 設定タブ切替
+$$('.settings-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.stab;
+    $$('.settings-tab').forEach(t => t.classList.toggle('active', t === tab));
+    $$('.settings-page').forEach(p => p.classList.toggle('active', p.dataset.spage === target));
+  });
+});
+
+// 要望モーダル
+let feedbackContext = 'settings';
+function openFeedback(context){
+  feedbackContext = context || 'settings';
+  $('#feedbackText').value = '';
+  $('#feedbackSubmitter').value = G.playerName || '';
+  $('#feedbackModal').classList.add('show');
+}
+function closeFeedback(){ $('#feedbackModal').classList.remove('show'); }
+$('#btnOpenFeedback').addEventListener('click', () => openFeedback('settings'));
+$('#feedbackCancelBtn').addEventListener('click', closeFeedback);
+$('#feedbackModal .media-modal-backdrop').addEventListener('click', closeFeedback);
+$('#feedbackSubmitBtn').addEventListener('click', async () => {
+  const content = $('#feedbackText').value.trim();
+  if (!content) { toast('内容を書いてね', true); return; }
+  const submitter = $('#feedbackSubmitter').value.trim() || null;
+  const btn = $('#feedbackSubmitBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 送信中…';
+  try {
+    const { error } = await sb.from('feedback').insert({ content, submitter, context: feedbackContext });
+    if (error) throw error;
+    toast('送信ありがと！');
+    closeFeedback();
+  } catch (e) {
+    console.error(e);
+    toast('送信失敗: ' + (e.message || e), true);
+  } finally {
+    btn.disabled = false; btn.textContent = '📤 送信';
+  }
+});
+
 $$('#scene-settings .setting-card').forEach(card => {
   const type = card.dataset.mtype;
   card.querySelectorAll('button[data-act]').forEach(btn => {
@@ -3078,6 +3163,7 @@ function endBattle(win){
       <button class="btn" id="btnCopy">📋 結果コピー</button>
       <button class="btn ally" id="btnRematch">🔁 もう一度</button>
       <button class="btn primary" id="btnNewPick">⚔ 別のキャラで</button>
+      <button class="btn" id="btnEndFeedback">💬 要望/感想</button>
     </div>`;
   $('#btnCopy').addEventListener('click', ()=>{
     const ta = $('#shareBox'); ta.select(); document.execCommand('copy');
@@ -3086,6 +3172,7 @@ function endBattle(win){
   });
   $('#btnRematch').addEventListener('click', startBattle);
   $('#btnNewPick').addEventListener('click', ()=>goPicker('ally'));
+  $('#btnEndFeedback').addEventListener('click', ()=>openFeedback('end_battle'));
   show('end');
 }
 
