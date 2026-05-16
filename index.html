@@ -46,29 +46,23 @@
     display: flex; flex-direction: column;
     position: relative; overflow: hidden;
   }
-  /* Rotate prompt: 廃止（強制回転CSSに置き換え） */
-  #rotate-prompt { display: none !important; }
-
-  /* スマホ縦持ち→CSSで強制的に90度回転して横画面UI表示 */
+  /* Rotate prompt for portrait mobile */
+  #rotate-prompt {
+    display: none;
+    position: fixed; inset: 0;
+    background: #02030a;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 30px;
+    z-index: 999; color: var(--text);
+    font-size: 18px; line-height: 1.6;
+  }
+  #rotate-prompt strong { color: var(--accent); }
+  #rotate-prompt .icon { font-size: 64px; animation: rotateIcon 2s ease-in-out infinite; display: inline-block; }
+  #rotate-prompt .hint { font-size: 13px; color: var(--dim); margin-top: 8px; }
+  @keyframes rotateIcon { 0%,100% { transform: rotate(0); } 50% { transform: rotate(90deg); } }
   @media (max-aspect-ratio: 1/1) and (pointer: coarse) {
-    html, body {
-      width: 100vh;
-      height: 100vw;
-      overflow: hidden;
-    }
-    body {
-      position: fixed;
-      top: 0; left: 100vw;
-      transform-origin: top left;
-      transform: rotate(90deg);
-    }
-    /* 回転後の表示領域：横=100vh / 縦=100vw に変換して16:9を再計算 */
-    #game {
-      width: min(100vh, calc(100vw * 16 / 9)) !important;
-      height: min(100vw, calc(100vh * 9 / 16)) !important;
-      max-width: none !important;
-      max-height: none !important;
-    }
+    #rotate-prompt { display: flex; flex-direction: column; gap: 12px; }
+    #game { display: none; }
   }
 
   /* Floating top-right buttons (BGM + Home) */
@@ -891,7 +885,7 @@
 <div id="rotate-prompt">
   <div class="icon">📱</div>
   <div>端末を <strong>横向き</strong> にしてね</div>
-  <div style="color:var(--dim);font-size:13px;">ギュラ鯖RPG は横画面でプレイします</div>
+  <div class="hint">画面が回らない人は<br>「画面の自動回転」をONにしてから傾けてね</div>
 </div>
 <div id="game">
   <button id="btnHome" style="display:none;">🏠 タイトル</button>
