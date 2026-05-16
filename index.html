@@ -62,6 +62,13 @@
       transform-origin: top left;
       transform: rotate(90deg);
     }
+    /* 回転後の表示領域：横=100vh / 縦=100vw に変換して16:9を再計算 */
+    #game {
+      width: min(100vh, calc(100vw * 16 / 9)) !important;
+      height: min(100vw, calc(100vh * 9 / 16)) !important;
+      max-width: none !important;
+      max-height: none !important;
+    }
   }
 
   /* Floating top-right buttons (BGM + Home) */
