@@ -294,7 +294,7 @@
   }
   .picker-detail-bg::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(10,12,24,.55) 0%, rgba(10,12,24,.75) 60%, rgba(10,12,24,.95) 100%);
+    background: linear-gradient(180deg, rgba(10,12,24,.15) 0%, rgba(10,12,24,.45) 60%, rgba(10,12,24,.78) 100%);
   }
   .picker-detail-content {
     position: relative; z-index: 1;
@@ -319,14 +319,14 @@
     background: rgba(0,0,0,.55);
     border: 1px solid rgba(255,255,255,.08);
     border-radius: 8px;
-    padding: 8px 12px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 4px 14px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 6px;
     font-size: 12px;
   }
-  .picker-detail-stats .lbl { color: var(--dim); }
-  .picker-detail-stats b { color: var(--text); font-size: 14px; }
+  .picker-detail-stats .pv-stat-bar { font-size: 12px; }
+  .picker-detail-stats .pv-stat-bar .lbl { color: var(--dim); width: 26px; }
+  .picker-detail-stats .pv-stat-bar .track { height: 10px; }
+  .picker-detail-stats .pv-stat-bar .val { width: 36px; color: var(--text); font-size: 13px; text-shadow: 0 1px 2px #000; }
   .picker-detail-trait {
     font-size: 12px; color: var(--accent);
     background: rgba(0,0,0,.5);
@@ -2256,10 +2256,9 @@ function renderPickerDetail(c){
         ${archName ? `<div class="picker-detail-sub">${esc(archName)}型</div>` : ''}
       </div>
       <div class="picker-detail-stats">
-        <div><span class="lbl">HP</span> <b>${c.hp}</b></div>
-        <div><span class="lbl">⚔ ATK</span> <b>${c.atk}</b></div>
-        <div><span class="lbl">🔮 MP</span> <b>${c.mp_max || 5}</b></div>
-        <div><span class="lbl">🛡 DEF</span> <b>${c.def || 0}</b></div>
+        <div class="pv-stat-bar hp"><span class="lbl">HP</span><div class="track"><div class="fill" style="width:${Math.min(100, c.hp / STAT_MAX.hp * 100)}%"></div></div><span class="val">${c.hp}</span></div>
+        <div class="pv-stat-bar atk"><span class="lbl">攻</span><div class="track"><div class="fill" style="width:${Math.min(100, c.atk / STAT_MAX.atk * 100)}%"></div></div><span class="val">${c.atk}</span></div>
+        <div class="pv-stat-bar mp"><span class="lbl">MP</span><div class="track"><div class="fill" style="width:${Math.min(100, (c.mp_max||5) / STAT_MAX.mp * 100)}%"></div></div><span class="val">${c.mp_max || 5}</span></div>
       </div>
       ${traitLine ? `<div class="picker-detail-trait">${traitLine}</div>` : ''}
       ${techs.length ? `
