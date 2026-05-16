@@ -208,62 +208,150 @@
   .title-menu-row .btn { font-size: 12px; padding: 8px 14px; }
 
   /* ========== Picker ========== */
-  #scene-picker { padding: 14px 20px; }
-  .picker-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  #scene-picker { padding: 12px 18px; display: flex; flex-direction: column; }
+  .picker-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; flex-shrink: 0; }
   .picker-head h2 { margin: 0; font-size: 16px; color: var(--accent); }
-  .filter { display: flex; gap: 6px; }
-  .filter button {
-    background: rgba(0,0,0,.3); border: 1px solid #3a4080; color: var(--dim);
-    padding: 4px 12px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 12px;
+  .picker-hint { color: var(--dim); font-size: 11px; }
+  .picker-layout {
+    flex: 1; display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+    gap: 14px; min-height: 0;
   }
-  .filter button.on { background: var(--accent); color: #2a1a00; border-color: var(--accent); font-weight: bold; }
-  .picker-hint { color: var(--dim); font-size: 11px; margin-bottom: 8px; }
-  .grid {
+  .picker-left {
+    display: flex; flex-direction: column;
+    min-height: 0; gap: 8px;
+  }
+  .grid-3x3 {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 8px;
-    overflow-y: auto;
-    padding-bottom: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 6px;
     flex: 1;
+    min-height: 0;
   }
+  .picker-pagination {
+    display: flex; gap: 8px; justify-content: center; align-items: center;
+    flex-shrink: 0;
+    color: var(--dim); font-size: 12px;
+  }
+  .picker-pagination button {
+    background: rgba(0,0,0,.3); border: 1px solid #3a4080; color: var(--text);
+    padding: 4px 12px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 14px;
+    line-height: 1;
+  }
+  .picker-pagination button:disabled { opacity: .3; cursor: default; }
+  .picker-pagination button:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+
   .card {
     background: var(--panel2);
     border: 2px solid #2a3060;
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform .1s, border-color .15s;
+    transition: transform .1s, border-color .15s, box-shadow .15s;
     display: flex; flex-direction: column;
     position: relative;
+    min-height: 0;
   }
-  .card:hover { transform: translateY(-2px); }
-  .card.role-enemy { border-color: #5a2040; }
-  .card.role-enemy:hover { border-color: var(--accent2); }
-  .card.role-ally { border-color: #20446a; }
-  .card.role-ally:hover { border-color: var(--ally); }
+  .card:hover { transform: translateY(-2px); border-color: #506090; }
+  .card.selected { border-color: var(--accent); box-shadow: 0 0 12px rgba(255,210,74,.45); }
   .card .imgbox {
-    width: 100%; aspect-ratio: 1/1;
+    width: 100%; flex: 1;
     background: #0a0c18;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
+    min-height: 0;
   }
   .card .imgbox img { width: 100%; height: 100%; object-fit: cover; }
-  .card .imgbox .ph { font-size: 40px; opacity: .3; }
-  .card .meta { padding: 6px 8px; }
-  .card .meta .nm { font-weight: bold; font-size: 12px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card .meta .st { color: var(--dim); font-size: 10px; margin-top: 2px; }
-  .card .meta .sub { color: var(--dim); font-size: 9px; opacity: .7; }
-  .card .role-tag {
-    position: absolute; top: 4px; left: 4px;
-    font-size: 9px; padding: 1px 5px; border-radius: 3px;
-    background: var(--ally); color: #001a2e; font-weight: bold;
-  }
-  .card.role-enemy .role-tag { background: var(--accent2); color: #fff; }
+  .card .imgbox .ph { font-size: 32px; opacity: .3; }
+  .card .meta { padding: 4px 6px; flex-shrink: 0; background: rgba(0,0,0,.4); }
+  .card .meta .nm { font-weight: bold; font-size: 11px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
   .empty {
-    grid-column: 1/-1;
+    grid-column: 1/-1; grid-row: 1/-1;
+    align-self: center; justify-self: center;
     text-align: center; color: var(--dim); font-size: 13px;
-    padding: 40px 20px; line-height: 1.7;
+    padding: 20px; line-height: 1.7;
   }
+
+  /* 詳細パネル（右側、キャラ画像は奥に大きく薄く） */
+  .picker-right {
+    position: relative;
+    border: 1px solid #3a4080;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--panel2);
+    min-height: 0;
+  }
+  .picker-detail-empty {
+    color: var(--dim); font-size: 13px;
+    height: 100%; display: flex; align-items: center; justify-content: center;
+    padding: 20px; text-align: center;
+  }
+  .picker-detail-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center top;
+    z-index: 0;
+  }
+  .picker-detail-bg::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,12,24,.55) 0%, rgba(10,12,24,.75) 60%, rgba(10,12,24,.95) 100%);
+  }
+  .picker-detail-content {
+    position: relative; z-index: 1;
+    padding: 14px 16px;
+    height: 100%;
+    display: flex; flex-direction: column; gap: 10px;
+    color: var(--text);
+    overflow-y: auto;
+  }
+  .picker-detail-name {
+    font-size: clamp(18px, 2.6vw, 28px);
+    color: var(--accent);
+    font-weight: bold;
+    line-height: 1.1;
+    text-shadow: 0 2px 8px #000, 2px 2px 0 #000;
+  }
+  .picker-detail-sub {
+    font-size: 11px; color: var(--dim);
+    text-shadow: 0 1px 4px #000;
+  }
+  .picker-detail-stats {
+    background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 14px;
+    font-size: 12px;
+  }
+  .picker-detail-stats .lbl { color: var(--dim); }
+  .picker-detail-stats b { color: var(--text); font-size: 14px; }
+  .picker-detail-trait {
+    font-size: 12px; color: var(--accent);
+    background: rgba(0,0,0,.5);
+    border-radius: 6px; padding: 4px 10px;
+    display: inline-block; width: fit-content;
+    text-shadow: 0 1px 3px #000;
+  }
+  .picker-detail-techs {
+    background: rgba(0,0,0,.5);
+    border-radius: 6px; padding: 6px 10px;
+    display: flex; flex-direction: column; gap: 3px;
+    font-size: 11px;
+  }
+  .picker-detail-techs .head { color: var(--accent); font-size: 11px; letter-spacing: 1px; margin-bottom: 2px; }
+  .picker-detail-techs .tech { display: flex; gap: 6px; align-items: baseline; }
+  .picker-detail-techs .tech .nm { font-weight: bold; }
+  .picker-detail-techs .tech .eff { color: var(--dim); font-size: 10px; }
+  .picker-detail-taunt {
+    font-size: 12px; font-style: italic;
+    color: var(--text);
+    background: rgba(0,0,0,.4);
+    border-left: 3px solid var(--accent);
+    padding: 4px 10px; border-radius: 4px;
+  }
+  .picker-confirm { margin-top: auto; }
 
   /* ========== Submit Wizard ========== */
   #scene-submit { padding: 14px 22px; }
@@ -1068,9 +1156,17 @@
     <section class="scene" id="scene-picker">
       <div class="picker-head">
         <h2 id="pickerTitle">キャラを選ぶ</h2>
+        <div id="pickerHint" class="picker-hint"></div>
       </div>
-      <div id="pickerHint" class="picker-hint"></div>
-      <div class="grid" id="grid"></div>
+      <div class="picker-layout">
+        <div class="picker-left">
+          <div class="grid grid-3x3" id="grid"></div>
+          <div class="picker-pagination" id="pickerPagination"></div>
+        </div>
+        <div class="picker-right" id="pickerDetail">
+          <div class="picker-detail-empty">← キャラを選んで詳細を見る</div>
+        </div>
+      </div>
     </section>
 
     <!-- Submit Wizard -->
@@ -2058,12 +2154,14 @@ function goTitle(){
 //================= ピッカー（役割区別なし）=================
 async function goPicker(stage){
   G.pickerStage = stage;
+  pickerPage = 0;
+  pickerSelectedIdx = -1;
   if (stage === 'ally') {
     $('#pickerTitle').textContent = '① 自分のキャラを選ぶ';
-    $('#pickerHint').innerHTML = '誰でも選べます';
+    $('#pickerHint').textContent = '誰でも選べます';
   } else if (stage === 'enemy') {
-    $('#pickerTitle').textContent = `② 相手を選ぶ (自分: ${esc(G.myChar.name)})`;
-    $('#pickerHint').innerHTML = '誰でも選べます';
+    $('#pickerTitle').textContent = '② 相手を選ぶ';
+    $('#pickerHint').textContent = `自分: ${G.myChar?.name || ''}`;
   } else {
     $('#pickerTitle').textContent = '📚 みんなの画像';
     $('#pickerHint').textContent = '（鑑賞モード）';
@@ -2075,30 +2173,107 @@ async function goPicker(stage){
   }
   renderGrid();
 }
+const PICKER_PAGE_SIZE = 9;
+let pickerPage = 0;
+let pickerSelectedIdx = -1;
+
 function renderGrid(){
   const grid = $('#grid');
-  const list = G.characters; // 役割区別なし、全員から選べる
+  const pag = $('#pickerPagination');
+  const list = G.characters;
   if (list.length === 0) {
     grid.innerHTML = `<div class="empty">まだキャラがいないみたい。<br><button class="btn" id="btnEmptySubmit" style="margin-top:10px;">📝 投稿してみる</button></div>`;
     $('#btnEmptySubmit')?.addEventListener('click', goSubmit);
+    pag.innerHTML = '';
+    renderPickerDetail(null);
     return;
   }
-  grid.innerHTML = list.map((c,i)=>`
-    <div class="card" data-idx="${i}">
-      <div class="imgbox">${c.image_url ? `<img src="${esc(c.image_url)}" alt="" loading="lazy">` : '<span class="ph">👤</span>'}</div>
-      <div class="meta">
-        <div class="nm">${esc(c.name)}</div>
-        <div class="st">HP${c.hp} ⚔${c.atk} 🛡${c.def||0}</div>
-        ${c.submitter ? `<div class="sub">by ${esc(c.submitter)}</div>` : ''}
-      </div>
-    </div>
-  `).join('');
-  grid.querySelectorAll('.card').forEach(card=>{
-    card.addEventListener('click', ()=>{
+  const totalPages = Math.max(1, Math.ceil(list.length / PICKER_PAGE_SIZE));
+  if (pickerPage >= totalPages) pickerPage = totalPages - 1;
+  if (pickerPage < 0) pickerPage = 0;
+  const start = pickerPage * PICKER_PAGE_SIZE;
+  const pageItems = list.slice(start, start + PICKER_PAGE_SIZE);
+
+  grid.innerHTML = pageItems.map((c, j) => {
+    const idx = start + j;
+    const sel = idx === pickerSelectedIdx ? ' selected' : '';
+    return `
+      <div class="card${sel}" data-idx="${idx}">
+        <div class="imgbox">${c.image_url ? `<img src="${esc(c.image_url)}" alt="" loading="lazy">` : '<span class="ph">👤</span>'}</div>
+        <div class="meta"><div class="nm">${esc(c.name)}</div></div>
+      </div>`;
+  }).join('');
+  grid.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => {
       const i = +card.dataset.idx;
-      onPickCharacter(list[i]);
+      pickerSelectedIdx = i;
+      grid.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      renderPickerDetail(list[i]);
     });
   });
+
+  // ページネーション
+  if (totalPages > 1) {
+    pag.innerHTML = `
+      <button id="pgPrev" ${pickerPage===0?'disabled':''}>‹ 前</button>
+      <span>${pickerPage+1} / ${totalPages}</span>
+      <button id="pgNext" ${pickerPage===totalPages-1?'disabled':''}>次 ›</button>
+    `;
+    $('#pgPrev').addEventListener('click', () => { pickerPage--; renderGrid(); });
+    $('#pgNext').addEventListener('click', () => { pickerPage++; renderGrid(); });
+  } else {
+    pag.innerHTML = '';
+  }
+
+  // 既に選択中のキャラがいれば詳細表示を維持
+  if (pickerSelectedIdx >= 0 && pickerSelectedIdx < list.length) {
+    renderPickerDetail(list[pickerSelectedIdx]);
+  } else {
+    renderPickerDetail(null);
+  }
+}
+
+function renderPickerDetail(c){
+  const el = $('#pickerDetail');
+  if (!c) {
+    el.innerHTML = '<div class="picker-detail-empty">← キャラを選んで詳細を見る</div>';
+    return;
+  }
+  const archName = c.archetype && ARCH_MAP[c.archetype] ? ARCH_MAP[c.archetype].name : '';
+  const traitObj = c.trait && TRAIT_MAP[c.trait];
+  const traitLine = traitObj ? `${traitObj.emoji} ${traitObj.name} <span style="color:var(--dim);">- ${esc(traitObj.desc)}</span>` : null;
+  const techs = (c.techs || []).filter(t => t && t.name);
+  const ctxLabel = G.pickerStage === 'ally'   ? '⚔ このキャラで戦う'
+                 : G.pickerStage === 'enemy'  ? '⚔ この相手と戦う'
+                 :                              '📋 操作する';
+  const bg = c.image_url ? `style="background-image:url('${esc(c.image_url)}')"` : '';
+  el.innerHTML = `
+    <div class="picker-detail-bg" ${bg}></div>
+    <div class="picker-detail-content">
+      <div>
+        <div class="picker-detail-name">${esc(c.name)}</div>
+        ${archName ? `<div class="picker-detail-sub">${esc(archName)}型</div>` : ''}
+      </div>
+      <div class="picker-detail-stats">
+        <div><span class="lbl">HP</span> <b>${c.hp}</b></div>
+        <div><span class="lbl">⚔ ATK</span> <b>${c.atk}</b></div>
+        <div><span class="lbl">🔮 MP</span> <b>${c.mp_max || 5}</b></div>
+        <div><span class="lbl">🛡 DEF</span> <b>${c.def || 0}</b></div>
+      </div>
+      ${traitLine ? `<div class="picker-detail-trait">${traitLine}</div>` : ''}
+      ${techs.length ? `
+        <div class="picker-detail-techs">
+          <div class="head">✨ 技</div>
+          ${techs.map(t => `<div class="tech"><span class="nm">${esc(t.name)}</span> <span class="eff">[${t.resource.toUpperCase()} ${Math.round(t.cost)} / ${fmtTechEffect(t)}]</span></div>`).join('')}
+        </div>
+      ` : ''}
+      ${c.taunt ? `<div class="picker-detail-taunt">「${esc(c.taunt)}」</div>` : ''}
+      ${c.submitter ? `<div class="picker-detail-sub">投稿者: ${esc(c.submitter)}</div>` : ''}
+      <button class="btn primary picker-confirm" id="pickerConfirmBtn">${ctxLabel}</button>
+    </div>
+  `;
+  $('#pickerConfirmBtn').addEventListener('click', () => onPickCharacter(c));
 }
 function onPickCharacter(c){
   if (G.pickerStage === 'ally') { G.myChar = c; goPicker('enemy'); }
