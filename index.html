@@ -2267,8 +2267,6 @@ function renderPickerDetail(c){
           ${techs.map(t => `<div class="tech"><span class="nm">${esc(t.name)}</span> <span class="eff">[${t.resource.toUpperCase()} ${Math.round(t.cost)} / ${fmtTechEffect(t)}]</span></div>`).join('')}
         </div>
       ` : ''}
-      ${c.taunt ? `<div class="picker-detail-taunt">「${esc(c.taunt)}」</div>` : ''}
-      ${c.submitter ? `<div class="picker-detail-sub">投稿者: ${esc(c.submitter)}</div>` : ''}
       <button class="btn primary picker-confirm" id="pickerConfirmBtn">${ctxLabel}</button>
     </div>
   `;
