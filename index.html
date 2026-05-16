@@ -143,6 +143,16 @@
     content: ""; position: absolute; inset: 0;
     background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.5) 85%, rgba(0,0,0,.75) 100%);
   }
+  .title-logo {
+    position: absolute;
+    top: 4%; left: 50%;
+    transform: translateX(-50%);
+    width: min(42%, 380px);
+    height: auto;
+    z-index: 3;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.6));
+  }
   .title-content {
     position: relative; z-index: 2;
     flex: 1; display: flex; flex-direction: column;
@@ -896,6 +906,7 @@
     <!-- Title -->
     <section class="scene active" id="scene-title">
       <div class="title-bg" id="titleBg"></div>
+      <img class="title-logo" src="images/title/logo.png" alt="ギュラ鯖RPG">
       <div class="title-content">
         <input id="playerName" class="title-name" maxlength="12" placeholder="あなたの名前 (任意)">
         <button class="img-btn btn-battle" data-menu="pickAlly">
@@ -1336,6 +1347,8 @@ function show(id){
   $('#scene-'+id).classList.add('active');
   // ホームボタンはタイトル・戦闘以外で表示
   $('#btnHome').style.display = (id === 'title' || id === 'battle') ? 'none' : 'flex';
+  // 戦闘画面ではBGMボタンを非表示（敵HPと重なるため）
+  $('#bgmToggle').style.display = (id === 'battle') ? 'none' : 'flex';
   if (id === 'settings') refreshSettingsCards();
   switchBgm(id);
 }
