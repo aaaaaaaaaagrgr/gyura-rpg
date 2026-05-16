@@ -2558,13 +2558,6 @@ function showTechPopup(resource, callback){
   const me = G.myChar;
   const list = (me.techs || []).filter(t => t.resource === resource);
   if (list.length === 0) { callback(null); return; }
-  if (list.length === 1) {
-    const t = list[0];
-    const cur = resource === 'mp' ? G.pMP : G.pTP;
-    if (cur < t.cost) { toast(resource === 'mp' ? 'MP不足' : 'TP不足', true); callback(null); return; }
-    callback(t);
-    return;
-  }
   const pop = $('#techPopup');
   $('#techPopupTitle').textContent = resource === 'mp' ? '🔮 まほうを えらぶ' : '⚡ とくぎを えらぶ';
   const listEl = $('#techPopupList');
