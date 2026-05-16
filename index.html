@@ -2410,9 +2410,42 @@ async function processPickedFile(){
 }
 $('#fImage').addEventListener('change', processPickedFile);
 $('#fBgRemove').addEventListener('change', ()=>{
-  // チェックボックスが変わった時、ファイルが選んであれば再処理
+  // 新規ファイルがあればそれを再処理。なければ編集中の既存URLから取得して再処理
   if ($('#fImage').files[0]) processPickedFile();
+  else if (G.editingImageUrl) processExistingImageFromUrl(G.editingImageUrl);
 });
+
+// 既存URLの画像を取得して透過処理（編集時、再アップロードなしで透過したい用途）
+async function processExistingImageFromUrl(url){
+  $('#filePickInner').innerHTML = '<div class="spinner"></div> 既存画像を取得中…';
+  try {
+    const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = await res.blob();
+    const fname = (url.split('/').pop() || 'existing').split('?')[0];
+    const file = new File([blob], fname, { type: blob.type || 'image/jpeg' });
+    let result = await resizeImage(file, 1024, 0.85);
+    const stepLabels = [];
+    if (result !== file) stepLabels.push('縮小');
+    if ($('#fBgRemove').checked) {
+      try { result = await removeBgAndCrop(result); stepLabels.push('背景透過'); }
+      catch (e) { toast('背景透過 失敗：' + e.message, true); }
+    }
+    pickedFile = result;
+    const r = new FileReader();
+    r.onload = ev => {
+      const note = stepLabels.length ? `既存→${stepLabels.join('+')}` : '既存画像を再ロード';
+      $('#filePickInner').innerHTML = `<img src="${ev.target.result}" class="preview"><div style="font-size:11px;color:var(--dim);margin-top:4px;">${note}（保存で適用）</div>`;
+      $('#filePick').classList.add('has');
+    };
+    r.readAsDataURL(pickedFile);
+  } catch (err) {
+    console.error(err);
+    toast('既存画像の取得に失敗：' + (err.message || err) + '（再度ファイルを選んでね）', true);
+    $('#filePickInner').innerHTML = '📷 タップして画像を選ぶ';
+    $('#filePick').classList.remove('has');
+  }
+}
 // （旧 #btnSubmit ハンドラはウィザード版 doSubmit() に置き換え済み）
 
 //================= バトル =================
