@@ -64,44 +64,25 @@
     #game { display: none; }
   }
 
-  header {
-    padding: 6px 14px;
-    background: rgba(0,0,0,.4);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(255,255,255,.08);
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 12px;
-    flex-shrink: 0;
-    z-index: 10;
-    height: 36px;
-  }
-  header .title { font-weight: bold; color: var(--accent); letter-spacing: 2px; font-size: 13px; }
-  header .home {
-    background: transparent;
-    border: 1px solid #3a4080; color: var(--dim);
-    cursor: pointer; padding: 3px 10px; border-radius: 6px;
-    font: inherit; font-size: 12px;
-    display: flex; align-items: center; gap: 4px;
-  }
-  header .home:hover { color: var(--accent); border-color: var(--accent); }
-
-  /* BGM mute button (fixed top-right corner of #game) */
-  #bgmToggle {
+  /* Floating top-right buttons (BGM + Home) */
+  #bgmToggle, #btnHome {
     position: absolute;
-    top: 8px; right: 8px;
+    top: 8px;
     z-index: 50;
-    width: 36px; height: 36px;
-    border-radius: 50%;
+    height: 36px;
+    border-radius: 18px;
     border: 1px solid rgba(255,255,255,.15);
     background: rgba(0,0,0,.5);
     color: var(--text);
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     backdrop-filter: blur(4px);
     transition: transform .1s, border-color .15s;
   }
-  #bgmToggle:hover { border-color: var(--accent); transform: scale(1.08); }
+  #bgmToggle { right: 8px; width: 36px; font-size: 16px; }
+  #btnHome { right: 52px; padding: 0 12px; gap: 4px; }
+  #bgmToggle:hover, #btnHome:hover { border-color: var(--accent); transform: scale(1.05); }
   #bgmToggle.muted { color: var(--dim); }
 
   main { flex: 1; position: relative; overflow: hidden; }
@@ -813,10 +794,7 @@
   <div style="color:var(--dim);font-size:13px;">ギュラ鯖RPG は横画面でプレイします</div>
 </div>
 <div id="game">
-  <header>
-    <div class="title">🎮 ギュラ鯖RPG</div>
-    <button class="home" id="btnHome" style="display:none;">🏠 タイトル</button>
-  </header>
+  <button id="btnHome" style="display:none;">🏠 タイトル</button>
   <button id="bgmToggle" title="BGM切替">🔊</button>
   <audio id="bgmTitle"  src="audio/title.mp3"  loop preload="auto"></audio>
   <audio id="bgmBattle" src="audio/battle.mp3" loop preload="auto"></audio>
@@ -1159,9 +1137,8 @@ const esc = s => String(s||'').replace(/[<>&"]/g, m => ({'<':'&lt;','>':'&gt;','
 function show(id){
   $$('.scene').forEach(s=>s.classList.remove('active'));
   $('#scene-'+id).classList.add('active');
-  $('#btnHome').style.display = (id === 'title') ? 'none' : 'flex';
-  // 戦闘・タイトル・投稿は全画面表示（ヘッダー隠す）
-  document.querySelector('header').style.display = (id === 'battle' || id === 'title' || id === 'submit') ? 'none' : 'flex';
+  // ホームボタンはタイトル・戦闘以外で表示
+  $('#btnHome').style.display = (id === 'title' || id === 'battle') ? 'none' : 'flex';
   switchBgm(id);
 }
 
