@@ -592,6 +592,22 @@
     60% { transform: translateX(-6px); filter: drop-shadow(0 0 12px #ff5b5b); }
     80% { transform: translateX(4px); }
   }
+  /* 回復：緑の輝き＆ふわっと浮く */
+  .char-sprite.healed { animation: healed .9s; }
+  @keyframes healed {
+    0%, 100% { transform: translateY(0); filter: none; }
+    20% { transform: translateY(-10px); filter: drop-shadow(0 0 16px #4be07a) hue-rotate(60deg) brightness(1.25) saturate(1.4); }
+    50% { transform: translateY(-6px); filter: drop-shadow(0 0 14px #4be07a) hue-rotate(30deg) brightness(1.15); }
+    80% { transform: translateY(-2px); filter: drop-shadow(0 0 8px #4be07a); }
+  }
+  /* バフ：金色オーラ＆ぐっと拡大 */
+  .char-sprite.buffed { animation: buffed 1.0s; }
+  @keyframes buffed {
+    0%, 100% { transform: scale(1); filter: none; }
+    25% { transform: scale(1.10); filter: drop-shadow(0 0 18px #ffd24a) brightness(1.4) saturate(1.4); }
+    50% { transform: scale(1.06); filter: drop-shadow(0 0 14px #ffd24a) brightness(1.25); }
+    75% { transform: scale(1.03); filter: drop-shadow(0 0 10px #ffd24a) brightness(1.1); }
+  }
   .char-sprite.dying { animation: die 1s forwards; }
   @keyframes die {
     0% { opacity: 1; transform: scale(1) rotate(0); }
@@ -2766,10 +2782,14 @@ async function executeTech(tech){
   } else if (tech.type === 'heal') {
     const heal = Math.min(G.pHPMax - G.pHP, Math.max(1, Math.floor(G.pHPMax * eff.hpPct / 100)));
     G.pHP += heal;
+    $('#allySprite').classList.remove('healed'); void $('#allySprite').offsetWidth;
+    $('#allySprite').classList.add('healed');
     popDmg('+'+heal, 'heal', 'ally');
     log(`💚 ${me.name} の ${tech.name}！ HP ${heal} 回復！`, 'heal');
   } else if (tech.type === 'buff') {
     G.allyBuff = { atkMult: 1 + eff.atkPlusPct / 100, turnsLeft: eff.turns };
+    $('#allySprite').classList.remove('buffed'); void $('#allySprite').offsetWidth;
+    $('#allySprite').classList.add('buffed');
     popDmg('UP!', 'heal', 'ally');
     log(`💪 ${me.name} の ${tech.name}！ 攻撃 +${eff.atkPlusPct.toFixed(0)}% (${eff.turns}T)`, 'crit');
   }
@@ -2821,6 +2841,8 @@ function endOfPlayerTurn(){
   if (meT.saisei && G.pHP < G.pHPMax && G.pHP > 0) {
     const regen = Math.max(1, Math.floor(G.pHPMax * 0.05));
     G.pHP = Math.min(G.pHPMax, G.pHP + regen);
+    $('#allySprite').classList.remove('healed'); void $('#allySprite').offsetWidth;
+    $('#allySprite').classList.add('healed');
     popDmg('+'+regen, 'heal', 'ally');
   }
   if (G.allyBuff.turnsLeft > 0) {
@@ -2939,10 +2961,14 @@ async function executeEnemyTech(tech){
   } else if (tech.type === 'heal') {
     const heal = Math.min(G.eHPMax - G.eHP, Math.max(1, Math.floor(G.eHPMax * eff.hpPct / 100)));
     G.eHP += heal;
+    $('#enemySprite').classList.remove('healed'); void $('#enemySprite').offsetWidth;
+    $('#enemySprite').classList.add('healed');
     popDmg('+'+heal, 'heal', 'enemy');
     log(`💚 ${opp.name} の ${tech.name}！ HP ${heal} 回復！`, 'heal');
   } else if (tech.type === 'buff') {
     G.enemyBuff = { atkMult: 1 + eff.atkPlusPct / 100, turnsLeft: eff.turns };
+    $('#enemySprite').classList.remove('buffed'); void $('#enemySprite').offsetWidth;
+    $('#enemySprite').classList.add('buffed');
     popDmg('UP!', 'heal', 'enemy');
     log(`💪 ${opp.name} の ${tech.name}！ 攻撃 +${eff.atkPlusPct.toFixed(0)}% (${eff.turns}T)`, 'crit');
   }
@@ -2998,6 +3024,8 @@ async function enemyTurn(){
   if (oppT.saisei && G.eHP < G.eHPMax && G.eHP > 0) {
     const regen = Math.max(1, Math.floor(G.eHPMax * 0.05));
     G.eHP = Math.min(G.eHPMax, G.eHP + regen);
+    $('#enemySprite').classList.remove('healed'); void $('#enemySprite').offsetWidth;
+    $('#enemySprite').classList.add('healed');
     popDmg('+'+regen, 'heal', 'enemy');
   }
   if (G.enemyBuff.turnsLeft > 0) {
